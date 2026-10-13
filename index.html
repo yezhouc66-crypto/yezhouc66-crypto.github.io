@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="早风爽的个人主页：学机器人的，喜欢把想法做成能跑起来的东西。">
-    <title>早风爽 · 个人主页</title>
+    <meta name="description" content="早风爽的作品集：学机器人的，喜欢把想法做成能跑起来的东西。">
+    <title>早风爽 · 作品集</title>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
@@ -17,37 +17,15 @@
           </div>
           <div class="bio">
             <p class="bio-lead">学机器人的，<br><span class="bio-phrase">喜欢把想法做成</span><span class="bio-phrase">能跑起来的东西。</span></p>
-            <p>平时折腾 AI 工具、写点小程序、养几台服务器，偶尔做些好玩的网页小游戏。</p>
+            <p>平时折腾 AI 工具、写点小程序、养几台服务器，偶尔做些好玩的<span class="bio-phrase">网页小游戏。</span></p>
             <p>正在慢慢积累自己的作品，欢迎来逛。</p>
           </div>
         </section>
 
-        <section class="projects enter" aria-labelledby="pendulum-title">
-          <div class="project-grid">
-            <a class="project-card" href="./pendulum/index.html" aria-labelledby="pendulum-title" aria-describedby="pendulum-description">
-              <div class="thumbnail pendulum-thumbnail">
-                <svg class="pendulum-drawing" viewBox="0 0 480 240" fill="none" role="img" aria-labelledby="pendulum-svg-title">
-                  <title id="pendulum-svg-title">一辆轨道上的小车，支撑着略向右倾斜的倒立摆杆</title>
-                  <g class="diagram-guides" stroke="currentColor" stroke-width="1">
-                    <path d="M62 189H418"/>
-                  </g>
-                  <g class="diagram-cart" stroke="currentColor" stroke-width="2">
-                    <rect x="197" y="147" width="86" height="26" rx="5" fill="var(--thumbnail)"/>
-                    <path d="M240 145 267 61" stroke-width="4" stroke-linecap="round"/>
-                    <circle cx="213" cy="180" r="7" fill="var(--thumbnail)"/>
-                    <circle cx="267" cy="180" r="7" fill="var(--thumbnail)"/>
-                    <path d="M209 160h12m7 0h9" stroke-width="1.5" stroke-linecap="round"/>
-                  </g>
-                  <circle class="diagram-weight" cx="267" cy="61" r="10"/>
-                  <circle class="diagram-pivot" cx="240" cy="147" r="4"/>
-                </svg>
-              </div>
-              <div class="project-title-row">
-                <h2 id="pendulum-title">倒立摆小游戏</h2>
-              </div>
-              <p class="project-description" id="pendulum-description">控制小车，让摇摇欲坠的摆杆保持直立。</p>
-            </a>
-          </div>
+        <section class="projects enter" aria-labelledby="projects-title">
+          <h2 class="section-title" id="projects-title">作品集</h2>
+          <div class="project-grid"></div>
+          <noscript><p class="project-description">请启用 JavaScript 以查看作品集，也可以直接<a class="text-link" href="./pendulum/">体验倒立摆小游戏</a>。</p></noscript>
         </section>
       </main>
 
@@ -58,5 +36,6 @@
       </footer>
     </div>
 
+    <script type="module" src="./main.js"></script>
   </body>
 </html>
