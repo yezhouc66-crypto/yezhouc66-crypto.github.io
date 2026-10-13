@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="早风爽的个人主页：学机器人的，喜欢把想法做成能跑起来的东西。">
+    <title>早风爽 · 个人主页</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <div class="page">
+      <main>
+        <section class="intro enter" aria-labelledby="name">
+          <div class="identity">
+            <h1 id="name">早风爽</h1>
+          </div>
+          <div class="bio">
+            <p class="bio-lead">学机器人的，<br><span class="bio-phrase">喜欢把想法做成</span><span class="bio-phrase">能跑起来的东西。</span></p>
+            <p>平时折腾 AI 工具、写点小程序、养几台服务器，偶尔做些好玩的网页小游戏。</p>
+            <p>正在慢慢积累自己的作品，欢迎来逛。</p>
+          </div>
+        </section>
+
+        <section class="projects enter" aria-labelledby="pendulum-title">
+          <div class="project-grid">
+            <a class="project-card" href="./pendulum/index.html" aria-labelledby="pendulum-title" aria-describedby="pendulum-description">
+              <div class="thumbnail pendulum-thumbnail">
+                <svg class="pendulum-drawing" viewBox="0 0 480 240" fill="none" role="img" aria-labelledby="pendulum-svg-title">
+                  <title id="pendulum-svg-title">一辆轨道上的小车，支撑着略向右倾斜的倒立摆杆</title>
+                  <g class="diagram-guides" stroke="currentColor" stroke-width="1">
+                    <path d="M62 189H418"/>
+                  </g>
+                  <g class="diagram-cart" stroke="currentColor" stroke-width="2">
+                    <rect x="197" y="147" width="86" height="26" rx="5" fill="var(--thumbnail)"/>
+                    <path d="M240 145 267 61" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="213" cy="180" r="7" fill="var(--thumbnail)"/>
+                    <circle cx="267" cy="180" r="7" fill="var(--thumbnail)"/>
+                    <path d="M209 160h12m7 0h9" stroke-width="1.5" stroke-linecap="round"/>
+                  </g>
+                  <circle class="diagram-weight" cx="267" cy="61" r="10"/>
+                  <circle class="diagram-pivot" cx="240" cy="147" r="4"/>
+                </svg>
+              </div>
+              <div class="project-title-row">
+                <h2 id="pendulum-title">倒立摆小游戏</h2>
+              </div>
+              <p class="project-description" id="pendulum-description">控制小车，让摇摇欲坠的摆杆保持直立。</p>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="enter">
+        <a class="github-link" href="https://github.com/yezhouc66-crypto">
+          GitHub
+        </a>
+      </footer>
+    </div>
+
+  </body>
+</html>

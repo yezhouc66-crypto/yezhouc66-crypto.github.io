@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>倒立摆挑战 - Inverted Pendulum Challenge</title>
+  <style>
+    :root {
+      --bg-primary: #070a12;
+      --bg-secondary: #0d1322;
+      --bg-panel: rgba(16, 24, 40, 0.85);
+      --border-color: rgba(0, 240, 255, 0.25);
+      --border-glow: rgba(0, 240, 255, 0.5);
+      --cyan: #00f0ff;
+      --cyan-dim: rgba(0, 240, 255, 0.15);
+      --amber: #ffaa00;
+      --amber-dim: rgba(255, 170, 0, 0.15);
+      --magenta: #ff2a6d;
+      --magenta-dim: rgba(255, 42, 109, 0.15);
+      --green: #05ffa1;
+      --green-dim: rgba(5, 255, 161, 0.15);
+      --text-main: #e6f1ff;
+      --text-dim: #798da3;
+      --font-mono: "Consolas", "Courier New", "SF Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    /* Ambient sci-fi background grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.05) 0%, transparent 60%),
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* App Header */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 18px;
+      background: linear-gradient(180deg, rgba(13, 20, 36, 0.95) 0%, rgba(7, 10, 18, 0.85) 100%);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px var(--border-glow);
+    }
+
+    .brand-icon::after {
+      content: "";
+      width: 4px;
+      height: 14px;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      transform-origin: bottom center;
+      transform: rotate(20deg);
+      border-radius: 2px;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+
+    .brand-sub {
+      font-size: 0.68rem;
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      opacity: 0.85;
+    }
+
+    /* Mode Navigation Tabs */
+    .mode-nav {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--cyan);
+      color: #070a12;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+      font-weight: 700;
+    }
+
+    /* Action Controls in Header */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cyber-btn {
+      background: rgba(13, 20, 36, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .cyber-btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+      color: #fff;
+    }
+
+    .cyber-btn:active {
+      transform: scale(0.96);
+    }
+
+    .cyber-btn.accent {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05));
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .cyber-btn.danger {
+      border-color: var(--magenta);
+      color: var(--magenta);
+    }
+    .cyber-btn.danger:hover {
+      background: rgba(255, 42, 109, 0.2);
+      box-shadow: 0 0 10px rgba(255, 42, 109, 0.4);
+    }
+
+    /* Main Container */
+    main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    /* Top HUD Cards */
+    .hud-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .hud-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hud-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--cyan);
+    }
+
+    .hud-card.amber::before { background: var(--amber); }
+    .hud-card.magenta::before { background: var(--magenta); }
+    .hud-card.green::before { background: var(--green); }
+
+    .hud-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hud-value {
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 2px;
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+    }
+
+    .hud-value.amber { color: var(--amber); text-shadow: 0 0 8px rgba(255, 170, 0, 0.4); }
+    .hud-value.magenta { color: var(--magenta); text-shadow: 0 0 8px rgba(255, 42, 109, 0.4); }
+    .hud-value.green { color: var(--green); text-shadow: 0 0 8px rgba(5, 255, 161, 0.4); }
+
+    /* Simulation Arena & Canvas Area */
+    .simulation-section {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      position: relative;
+      touch-action: none;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: radial-gradient(circle at 50% 50%, #0d1527 0%, #060911 100%);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #sim-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    /* Canvas Overlays */
+    .canvas-hud-overlay {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(7, 10, 18, 0.75);
+      border: 1px solid var(--cyan);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+
+    .status-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .status-badge.stable { border-color: var(--green); color: var(--green); }
+    .status-badge.stable .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    .status-badge.tuning { border-color: var(--amber); color: var(--amber); }
+    .status-badge.tuning .dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+    .status-badge.danger { border-color: var(--magenta); color: var(--magenta); }
+    .status-badge.danger .dot { background: var(--magenta); box-shadow: 0 0 6px var(--magenta); }
+
+    .wind-hud {
+      background: rgba(7, 10, 18, 0.75);
+      border: 1px solid rgba(255, 170, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Mobile Touch Zones for Manual Mode */
+    .touch-controls {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      pointer-events: auto;
+      z-index: 8;
+      touch-action: none;
+    }
+
+    .touch-zone {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      padding: 24px;
+      opacity: 0.35;
+      transition: opacity 0.15s, background-color 0.15s;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .touch-zone:hover, .touch-zone:active, .touch-zone.active {
+      opacity: 0.9;
+    }
+
+    .touch-zone.left {
+      justify-content: flex-start;
+      background: linear-gradient(90deg, rgba(0, 240, 255, 0.2) 0%, transparent 80%);
+      border-right: 1px dashed rgba(0, 240, 255, 0.15);
+    }
+
+    .touch-zone.right {
+      justify-content: flex-end;
+      background: linear-gradient(270deg, rgba(0, 240, 255, 0.2) 0%, transparent 80%);
+    }
+
+    .touch-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+      pointer-events: none;
+    }
+
+    /* PID Mode: Split Panel (Control & Chart) */
+    .pid-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(10, 15, 26, 0.95);
+      border-top: 1px solid var(--border-color);
+    }
+
+    @media (max-width: 900px) {
+      .pid-dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pid-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+      padding-bottom: 8px;
+    }
+
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Slider Rows */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    .slider-name {
+      color: var(--text-main);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slider-value {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .slider-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      cursor: pointer;
+      border: 2px solid #fff;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* PID Action Buttons */
+    .pid-button-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    #btn-poke {
+      flex: 1;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, rgba(255, 170, 0, 0.3), rgba(255, 170, 0, 0.1));
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 0 12px rgba(255, 170, 0, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    #btn-poke:hover {
+      background: linear-gradient(135deg, rgba(255, 170, 0, 0.45), rgba(255, 170, 0, 0.2));
+      box-shadow: 0 0 18px rgba(255, 170, 0, 0.45);
+      color: #fff;
+    }
+
+    #btn-poke:active {
+      transform: scale(0.96);
+    }
+
+    /* PID Presets */
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip-btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    /* Oscilloscope / Chart Container */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      background: #060910;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #chart-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
+    /* Modal / Popups */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: linear-gradient(180deg, #10192b 0%, #090e18 100%);
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.35);
+      border-radius: 12px;
+      max-width: 480px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateY(20px);
+      transition: transform 0.25s ease;
+      position: relative;
+    }
+
+    .modal-backdrop.active .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+
+    .modal-desc {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+    }
+
+    .modal-stats {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .modal-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .modal-actions .cyber-btn {
+      flex: 1;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+    }
+
+    /* Footer hints */
+    footer {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      padding: 8px 16px 14px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge-key {
+      display: inline-block;
+      padding: 1px 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      color: #fff;
+    }
+
+    /* Pulse effect for new record */
+    .record-alert {
+      color: var(--green);
+      font-size: 0.8rem;
+      font-weight: 700;
+      animation: pulse-dot 1s infinite;
+    }
+
+    /* Hidden helper */
+    .hidden {
+      display: none !important;
+    }
+
+    /* 3-2-1 Countdown Overlay */
+    .countdown-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 7, 13, 0.45);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      pointer-events: none;
+      z-index: 15;
+      transition: opacity 0.2s ease;
+    }
+
+    .countdown-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .countdown-number {
+      font-family: var(--font-mono);
+      font-size: 5.5rem;
+      font-weight: 900;
+      color: var(--cyan);
+      text-shadow: 0 0 25px rgba(0, 240, 255, 0.85), 0 0 50px rgba(0, 240, 255, 0.45);
+      line-height: 1;
+      transform-origin: center center;
+    }
+
+    .countdown-pop-anim {
+      animation: countdown-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .countdown-tip {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--text-main);
+      background: rgba(13, 20, 36, 0.85);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+      padding: 6px 18px;
+      border-radius: 20px;
+    }
+
+    @keyframes countdown-pop {
+      0% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Mobile Bottom Control Bar */
+    .manual-bottom-controls {
+      display: flex;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(10, 15, 26, 0.95);
+      border-top: 1px solid var(--border-color);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .arrow-pad-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      background: linear-gradient(180deg, rgba(16, 24, 40, 0.9) 0%, rgba(10, 15, 26, 0.95) 100%);
+      border: 1.5px solid rgba(0, 240, 255, 0.4);
+      border-radius: 8px;
+      color: var(--cyan);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: none;
+      transition: all 0.1s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .arrow-pad-btn .btn-arrow {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .arrow-pad-btn:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+    }
+
+    .arrow-pad-btn:active, .arrow-pad-btn.active {
+      background: linear-gradient(180deg, rgba(0, 240, 255, 0.35) 0%, rgba(0, 240, 255, 0.15) 100%);
+      border-color: #ffffff;
+      color: #ffffff;
+      transform: scale(0.97);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon"></div>
+      <div>
+        <div class="brand-title">倒立摆挑战</div>
+        <div class="brand-sub">INVERTED PENDULUM v2.0</div>
+      </div>
+    </div>
+
+    <!-- Mode switch tabs -->
+    <div class="mode-nav" role="tablist">
+      <button id="btn-manual" class="tab-btn active" role="tab" title="手动物理平衡挑战">
+        🎮 手动挑战
+      </button>
+      <button id="btn-pid" class="tab-btn" role="tab" title="PID自动控制与曲线调试">
+        🤖 PID 控制
+      </button>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <button id="btn-pause" class="cyber-btn" title="暂停/继续 (空格键)">
+        <span id="pause-icon">⏸</span> <span id="pause-text">暂停</span>
+      </button>
+      <button id="btn-restart" class="cyber-btn danger" title="重置摆杆并重新开始 (R键)">
+        🔄 重新开始
+      </button>
+      <button id="btn-sound" class="cyber-btn" title="音效开关">
+        <span id="sound-icon">🔊</span>
+      </button>
+      <button id="btn-help" class="cyber-btn" title="游戏玩法与原理">
+        ❓ 帮助
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- HUD Info Bar -->
+    <div class="hud-bar">
+      <!-- Time / Survival in Manual -->
+      <div class="hud-card" id="hud-card-survival">
+        <div class="hud-label">
+          <span>生存时间 SURVIVAL</span>
+          <span id="survival-badge">LIVE</span>
+        </div>
+        <div class="hud-value" id="val-survival-time">0.00 s</div>
+      </div>
+
+      <!-- Highscore in Manual -->
+      <div class="hud-card amber" id="hud-card-hiscore">
+        <div class="hud-label">
+          <span>历史最高 BEST</span>
+          <span>🏆</span>
+        </div>
+        <div class="hud-value amber" id="val-hiscore">0.00 s</div>
+      </div>
+
+      <!-- Pendulum Angle Theta -->
+      <div class="hud-card magenta">
+        <div class="hud-label">
+          <span>摆杆偏角 θ</span>
+          <span>|θ| &lt; 45°</span>
+        </div>
+        <div class="hud-value magenta" id="val-theta">+1.1°</div>
+      </div>
+
+      <!-- Cart Position X -->
+      <div class="hud-card green">
+        <div class="hud-label">
+          <span>小车位移 x</span>
+          <span>轨道中心 0m</span>
+        </div>
+        <div class="hud-value green" id="val-x">0.00 m</div>
+      </div>
+    </div>
+
+    <!-- Simulation Screen -->
+    <section class="simulation-section">
+      <div class="canvas-container" id="canvas-wrapper">
+        <canvas id="sim-canvas"></canvas>
+
+        <!-- Dynamic Overlay Badges -->
+        <div class="canvas-hud-overlay">
+          <div id="status-badge" class="status-badge stable">
+            <span class="dot"></span>
+            <span id="status-text">系统就绪 READY</span>
+          </div>
+
+          <div id="wind-hud" class="wind-hud hidden">
+            <span>💨 扰动微风:</span>
+            <span id="wind-text">0.0 N</span>
+          </div>
+        </div>
+
+        <!-- Touch Controls for Mobile (Manual Mode) -->
+        <div id="touch-controls" class="touch-controls">
+          <div class="touch-zone left" id="touch-left">
+            <div class="touch-indicator">
+              <span>◀</span> 向左推
+            </div>
+          </div>
+          <div class="touch-zone right" id="touch-right">
+            <div class="touch-indicator">
+              向右推 <span>▶</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-2-1 Countdown Overlay -->
+        <div id="countdown-overlay" class="countdown-overlay hidden">
+          <div class="countdown-content">
+            <div id="countdown-number" class="countdown-number">3</div>
+            <div id="countdown-tip" class="countdown-tip">准备保持平衡... 摆杆已锁定</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Bottom Control Bar for Manual Mode -->
+      <div id="manual-bottom-controls" class="manual-bottom-controls">
+        <button id="btn-touch-left" class="arrow-pad-btn" aria-label="向左推小车">
+          <span class="btn-arrow">◀</span>
+          <span class="btn-label">向左推 <span class="badge-key">A</span></span>
+        </button>
+        <button id="btn-touch-right" class="arrow-pad-btn" aria-label="向右推小车">
+          <span class="btn-label">向右推 <span class="badge-key">D</span></span>
+          <span class="btn-arrow">▶</span>
+        </button>
+      </div>
+
+      <!-- PID Mode Dashboard (Sliders & Live Rolling Chart) -->
+      <div id="pid-dashboard" class="pid-dashboard hidden">
+        <!-- Control Sliders -->
+        <div class="pid-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>⚙️</span> PID 控制器参数调节
+            </div>
+            <div class="preset-chips">
+              <button class="chip-btn" data-preset="balanced">经典平衡</button>
+              <button class="chip-btn" data-preset="aggressive">高刚度响应</button>
+              <button class="chip-btn" data-preset="underdamped">轻微欠阻尼</button>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <!-- Kp Angle -->
+            <div class="slider-row">
+              <div class="slider-info">
+                <span class="slider-name">角度比例增益 K<sub>p,θ</sub></span>
+                <span class="slider-value" id="val-kp">85.0</span>
+              </div>
+              <div class="slider-input-wrapper">
+                <input type="range" id="slider-kp" min="0" max="250" step="1" value="85">
+              </div>
+            </div>
+
+            <!-- Ki Angle -->
+            <div class="slider-row">
+              <div class="slider-info">
+                <span class="slider-name">角度积分增益 K<sub>i,θ</sub></span>
+                <span class="slider-value" id="val-ki">1.2</span>
+              </div>
+              <div class="slider-input-wrapper">
+                <input type="range" id="slider-ki" min="0" max="30" step="0.1" value="1.2">
+              </div>
+            </div>
+
+            <!-- Kd Angle -->
+            <div class="slider-row">
+              <div class="slider-info">
+                <span class="slider-name">角度微分增益 K<sub>d,θ</sub></span>
+                <span class="slider-value" id="val-kd">18.0</span>
+              </div>
+              <div class="slider-input-wrapper">
+                <input type="range" id="slider-kd" min="0" max="50" step="0.5" value="18.0">
+              </div>
+            </div>
+
+            <!-- Kp Cart Position -->
+            <div class="slider-row">
+              <div class="slider-info">
+                <span class="slider-name">小车位置回中 K<sub>p,x</sub></span>
+                <span class="slider-value" id="val-kpx">3.5</span>
+              </div>
+              <div class="slider-input-wrapper">
+                <input type="range" id="slider-kpx" min="0" max="20" step="0.1" value="3.5">
+              </div>
+            </div>
+
+            <!-- Kd Cart Position -->
+            <div class="slider-row">
+              <div class="slider-info">
+                <span class="slider-name">小车速度阻尼 K<sub>d,x</sub></span>
+                <span class="slider-value" id="val-kdx">4.8</span>
+              </div>
+              <div class="slider-input-wrapper">
+                <input type="range" id="slider-kdx" min="0" max="20" step="0.1" value="4.8">
+              </div>
+            </div>
+          </div>
+
+          <!-- Poke & Action buttons -->
+          <div class="pid-button-bar">
+            <button id="btn-poke" title="施加瞬间外力扰动测试系统稳态">
+              ⚡ 戳一下 (扰动摆杆)
+            </button>
+            <button id="btn-zero-cart" class="cyber-btn" title="重设小车位置目标为中心0点">
+              🎯 回正中心
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-time Rolling Chart -->
+        <div class="pid-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span>📈</span> 实时示波遥测曲线 (动态滚动)
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <span class="legend-color" style="background: var(--cyan);"></span>
+                <span style="color: var(--cyan);">θ 摆角(°)</span>
+              </div>
+              <div class="legend-item" style="margin-left: 10px;">
+                <span class="legend-color" style="background: var(--amber);"></span>
+                <span style="color: var(--amber);">x 位移(m)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <canvas id="chart-canvas"></canvas>
+          </div>
+
+          <div style="font-size: 0.72rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+            <span>采样频率: 60Hz 实时双轨追踪</span>
+            <span>时间窗口: 8.0 秒</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer control hints -->
+  <footer>
+    <div id="footer-manual-hints">
+      <span>控制操作: <span class="badge-key">A</span> / <span class="badge-key">←</span> 左推小车</span>
+      <span style="margin: 0 8px;">|</span>
+      <span><span class="badge-key">D</span> / <span class="badge-key">→</span> 右推小车</span>
+      <span style="margin: 0 8px;">|</span>
+      <span>手机端可直接轻触屏幕左右半区</span>
+    </div>
+    <div id="footer-pid-hints" class="hidden">
+      <span>PID模式: 级联闭环自动平衡 F = Kp·(θ - θ_ref) + Ki·∫(θ - θ_ref) + Kd·ω，其中 θ_ref = -(Kpx·x + Kdx·v)/28</span>
+    </div>
+  </footer>
+
+  <!-- Modal: Game Over (Manual Mode) -->
+  <div id="modal-gameover" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-title" style="color: var(--magenta);">
+        <span>💥</span> 游戏结束 GAME OVER
+      </div>
+      <div class="modal-desc" id="gameover-reason">
+        摆杆倾斜角超过极限阈值 45°，重力力矩打破了平衡！
+      </div>
+
+      <div class="modal-stats">
+        <div class="modal-stat-row">
+          <span style="color: var(--text-dim);">本次生存时间</span>
+          <span class="hud-value magenta" id="modal-final-time">0.00 s</span>
+        </div>
+        <div class="modal-stat-row">
+          <span style="color: var(--text-dim);">历史最佳纪录</span>
+          <span class="hud-value amber" id="modal-best-time">0.00 s</span>
+        </div>
+        <div id="modal-new-record" class="record-alert hidden">
+          🎉 太棒了！刷新了历史最高纪录！
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="modal-btn-retry" class="cyber-btn accent">
+          🔄 再试一次
+        </button>
+        <button id="modal-btn-switch-pid" class="cyber-btn">
+          🤖 体验 PID 自动控制
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Welcome / Start Screen -->
+  <div id="modal-start" class="modal-backdrop active">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>🚀</span> 《倒立摆挑战》
+      </div>
+      <div class="modal-desc">
+        欢迎来到经典控制理论与物理模拟挑战！倒立摆（Inverted Pendulum）是航空航天火箭发射姿态调整、双足机器人行走和赛格威平衡车的基础核心模型。
+      </div>
+
+      <div class="modal-stats" style="font-size: 0.8rem; line-height: 1.5;">
+        <div>🎮 <strong>手动挑战模式:</strong> 方向键 / A-D / 触屏推小车，防止摆杆倾倒超过 45° 并不撞墙，坚持越久扰动越强！</div>
+        <div style="margin-top: 6px;">🤖 <strong>PID 演示模式:</strong> 探索比例、积分、微分算法如何自动回正倒立摆，并用“戳一下”测试系统抗扰刚度。</div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="modal-btn-start-manual" class="cyber-btn accent">
+          🎮 开始手动挑战
+        </button>
+        <button id="modal-btn-start-pid" class="cyber-btn">
+          🤖 探索 PID 控制
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Help & Physics Docs -->
+  <div id="modal-help" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>📖</span> 物理方程与控制理论
+      </div>
+      <div class="modal-desc" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+        <p><strong>1. 动力学物理方程 (Lagrange 方程):</strong><br>
+        考虑小车质量 M，摆杆质量 m，转动惯量 J，杆长中心距 l，摩擦阻尼 μ：<br>
+        • (M + m)ẍ + ml cos(θ)θ̈ - ml sin(θ)θ̇² = F - b·ẋ<br>
+        • ml cos(θ)ẍ + Jθ̈ - mgl sin(θ) = -μ·θ̇<br>
+        本系统采用 <strong>Runge-Kutta 4阶 (RK4)</strong> 显式积分法，数值极为平滑精准。
+        </p>
+        <br>
+        <p><strong>2. 手动模式规则:</strong><br>
+        • 角度超过 ±45° 或小车撞击轨道端点即失败。<br>
+        • 随时间推移，环境随机阵风扰动将逐步加剧。
+        </p>
+        <br>
+        <p><strong>3. PID 调参秘籍:</strong><br>
+        • <strong>Kp (比例):</strong> 反应灵敏度。过小倒立不稳，过大会引起高频剧烈抖动。<br>
+        • <strong>Kd (微分):</strong> 阻尼项。抑制震荡超调，提供稳定性。<br>
+        • <strong>Ki (积分):</strong> 消除常值微小倾角稳态误差。<br>
+        • <strong>位置项 (Kp_x, Kd_x):</strong> 让小车在稳摆的同时回到轨道中心。
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button id="modal-btn-close-help" class="cyber-btn accent">
+          明白，返回
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    (function() {
+      'use strict';
+
+      /* ============================================================
+       * 1. 物理系统模型与常数 (Cart-Pole RK4 Dynamics)
+       * ============================================================ */
+      const PHYSICS = {
+        M: 1.0,         // 小车质量 (kg)
+        m: 0.18,        // 摆杆质量 (kg)
+        L: 1.0,         // 摆杆有效总长 (m)
+        g: 9.81,        // 重力加速度 (m/s^2)
+        bc: 0.25,       // 小车轨道滑动阻尼 (N·s/m)
+        mup: 0.008,     // 摆杆轴承转动阻尼 (N·m·s/rad)
+        trackLimit: 2.2,// 轨道单侧极限半长 (m) -> 轨道范围 [-2.2m, +2.2m]
+        timeScale: 0.38 // 物理有效时间尺度，符合人类反应感知
+      };
+
+      // 质心距离与绕轴转动惯量
+      PHYSICS.l = PHYSICS.L / 2.0; // 0.5m
+      PHYSICS.J = (4.0 / 3.0) * PHYSICS.m * (PHYSICS.l ** 2);
+
+      // 状态变量: x (m), v (m/s), theta (rad, 0表示垂直向上), omega (rad/s)
+      // 保持对象引用稳定，内部属性原地修改，初始角度约 0.02 rad (+1.15°)
+      const state = {
+        x: 0.0,
+        v: 0.0,
+        theta: 0.02,
+        omega: 0.0
+      };
+
+      // PID 控制器状态
+      const pid = {
+        kp: 85.0,
+        ki: 1.2,
+        kd: 18.0,
+        kpx: 3.5,
+        kdx: 4.8,
+        integralTheta: 0.0,
+        integralLimit: 2.0, // 防止积分饱和
+        lastError: 0.0
+      };
+
+      // 游戏运行态
+      const GAME = {
+        mode: 'manual',      // 'manual' | 'pid'
+        isPaused: false,
+        isGameOver: false,
+        isCountingDown: false,
+        hasStarted: false,
+        survivalTime: 0.0,   // 秒
+        highScore: 0.0,      // 秒
+        manualForce: 0.0,    // 手动推力 (N)
+        maxPushForce: 26.0,  // 手动推力上限 (N)
+        lastForce: 0.0,      // 上一步有效推力 (N)
+        windForce: 0.0,      // 当前风力扰动 (N)
+        windLevel: 0,
+        pokeImpulse: 0.0,    // 戳一下脉冲
+        particles: []        // 特效粒子
+      };
+
+      // 暴露给自动化测试读取 (Requirement 6)
+      window.__pend = {
+        get state() { return state; },
+        set state(s) {
+          if (s && typeof s === 'object') {
+            Object.assign(state, s);
+          }
+        },
+        GAME,
+        PHYSICS,
+        pid
+      };
+
+      // 从 localStorage 读取历史最高分
+      const LS_KEY = 'inverted_pendulum_hiscore_v2';
+      try {
+        const savedScore = localStorage.getItem(LS_KEY);
+        if (savedScore) {
+          GAME.highScore = parseFloat(savedScore) || 0.0;
+        }
+      } catch (e) {
+        console.warn('localStorage access failed:', e);
+      }
+
+      /* ============================================================
+       * 2. WebAudio 纯合成科幻音效系统 (无外部资源)
+       * ============================================================ */
+      class SoundSystem {
+        constructor() {
+          this.ctx = null;
+          this.enabled = true;
+          this.motorOsc = null;
+          this.motorGain = null;
+        }
+
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        toggle() {
+          this.enabled = !this.enabled;
+          if (!this.enabled && this.motorGain) {
+            this.motorGain.gain.setValueAtTime(0, this.ctx ? this.ctx.currentTime : 0);
+          }
+          return this.enabled;
+        }
+
+        playBlip(freq = 440, type = 'sine', duration = 0.08, vol = 0.15) {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+          try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+          } catch(e) {}
+        }
+
+        playPoke() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+          try {
+            // 低频冲击声 + 高频金属撞击泛音
+            const t = this.ctx.currentTime;
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc1.type = 'triangle';
+            osc1.frequency.setValueAtTime(180, t);
+            osc1.frequency.exponentialRampToValueAtTime(30, t + 0.25);
+
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, t);
+            osc2.frequency.exponentialRampToValueAtTime(220, t + 0.15);
+
+            gain.gain.setValueAtTime(0.35, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc1.start(t);
+            osc2.start(t);
+            osc1.stop(t + 0.3);
+            osc2.stop(t + 0.3);
+          } catch(e) {}
+        }
+
+        playGameOver() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+          try {
+            const t = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(320, t);
+            osc.frequency.linearRampToValueAtTime(60, t + 0.55);
+
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.6);
+          } catch(e) {}
+        }
+
+        playVictory() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+          try {
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+            notes.forEach((freq, idx) => {
+              const t = this.ctx.currentTime + idx * 0.1;
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, t);
+              gain.gain.setValueAtTime(0.2, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+              osc.start(t);
+              osc.stop(t + 0.35);
+            });
+          } catch(e) {}
+        }
+      }
+
+      const sounds = new SoundSystem();
+
+      /* ============================================================
+       * 3. 动力学导数计算与 RK4 积分器
+       * ============================================================ */
+      function computeDerivatives(x, v, theta, omega, F) {
+        const { M, m, l, J, g, bc, mup } = PHYSICS;
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+
+        // 方程系数矩阵 det: (M + m)*J - (m*l*cos(theta))^2
+        const det = (M + m) * J - (m * l * cosT) * (m * l * cosT);
+
+        // R1: 外力项 + 惯性离心力项 - 摩擦
+        const R1 = F - bc * v + m * l * (omega * omega) * sinT;
+
+        // R2: 重力恢复力矩 - 阻尼转矩
+        const R2 = m * g * l * sinT - mup * omega;
+
+        // 求解加速度 a = d^2 x / dt^2, alpha = d^2 theta / dt^2
+        const a = (J * R1 - (m * l * cosT) * R2) / det;
+        const alpha = ((M + m) * R2 - (m * l * cosT) * R1) / det;
+
+        return { dx: v, dv: a, dtheta: omega, domega: alpha };
+      }
+
+      // 4阶龙格-库塔单步更新
+      function rk4Step(s, F, dt) {
+        const k1 = computeDerivatives(s.x, s.v, s.theta, s.omega, F);
+
+        const s2_x = s.x + 0.5 * dt * k1.dx;
+        const s2_v = s.v + 0.5 * dt * k1.dv;
+        const s2_t = s.theta + 0.5 * dt * k1.dtheta;
+        const s2_w = s.omega + 0.5 * dt * k1.domega;
+        const k2 = computeDerivatives(s2_x, s2_v, s2_t, s2_w, F);
+
+        const s3_x = s.x + 0.5 * dt * k2.dx;
+        const s3_v = s.v + 0.5 * dt * k2.dv;
+        const s3_t = s.theta + 0.5 * dt * k2.dtheta;
+        const s3_w = s.omega + 0.5 * dt * k2.domega;
+        const k3 = computeDerivatives(s3_x, s3_v, s3_t, s3_w, F);
+
+        const s4_x = s.x + dt * k3.dx;
+        const s4_v = s.v + dt * k3.dv;
+        const s4_t = s.theta + dt * k3.dtheta;
+        const s4_w = s.omega + dt * k3.domega;
+        const k4 = computeDerivatives(s4_x, s4_v, s4_t, s4_w, F);
+
+        return {
+          x: s.x + (dt / 6.0) * (k1.dx + 2.0 * k2.dx + 2.0 * k3.dx + k4.dx),
+          v: s.v + (dt / 6.0) * (k1.dv + 2.0 * k2.dv + 2.0 * k3.dv + k4.dv),
+          theta: s.theta + (dt / 6.0) * (k1.dtheta + 2.0 * k2.dtheta + 2.0 * k3.dtheta + k4.dtheta),
+          omega: s.omega + (dt / 6.0) * (k1.domega + 2.0 * k2.domega + 2.0 * k3.domega + k4.domega)
+        };
+      }
+
+      /* ============================================================
+       * 4. PID 自动控制推力计算 (级联回中架构)
+       * ============================================================ */
+      function computePIDForce(dt, updateIntegral = true) {
+        // 小车位置回中级联外环:
+        // 当小车位置偏右 (x > 0)，需要让小车向左移动；
+        // 为使小车向左移动，倒立摆必须向左倾斜 (targetTheta < 0) 牵引小车回中
+        const errorX = state.x - 0.0;
+        // 级联映射：外环生成目标偏角，限幅在 ±0.25 rad (~14.3°) 安全角度内
+        const targetTheta = Math.max(-0.25, Math.min(0.25, -(pid.kpx * errorX + pid.kdx * state.v) / 28.0));
+        const errorTheta = state.theta - targetTheta;
+
+        // 积分抗饱和处理
+        if (updateIntegral) {
+          pid.integralTheta += errorTheta * dt;
+          pid.integralTheta = Math.max(-pid.integralLimit, Math.min(pid.integralLimit, pid.integralTheta));
+        }
+
+        // 微分项直接使用真实角速度 omega，避免数值微分噪声
+        const dTheta = state.omega;
+
+        // 角度回正内环控制器输出推力
+        let totalForce = pid.kp * errorTheta + pid.ki * pid.integralTheta + pid.kd * dTheta;
+
+        // 电机推力物理饱和限制
+        const maxForce = 75.0; // 牛顿
+        totalForce = Math.max(-maxForce, Math.min(maxForce, totalForce));
+
+        return totalForce;
+      }
+
+      /* ============================================================
+       * 5. 扰动生成器 (手动模式难度递增)
+       * ============================================================ */
+      let windTime = 0;
+      function updateDisturbances(dt) {
+        if (GAME.mode === 'manual' && !GAME.isGameOver && !GAME.isCountingDown && GAME.hasStarted) {
+          // 开局前2秒完全无随机扰动 (Requirement 1)
+          if (GAME.survivalTime <= 2.0) {
+            GAME.windForce = 0.0;
+            GAME.windLevel = 0;
+            return;
+          }
+          windTime += dt;
+          const activeTime = GAME.survivalTime - 2.0;
+          // 随着生存时间变长，扰动等级从 0 递增到 5
+          const intensity = Math.min(1.0, activeTime / 50.0);
+          GAME.windLevel = Math.min(5, Math.floor(activeTime / 10.0));
+
+          // 周期性风力波动叠加随机阵风
+          const baseWind = Math.sin(windTime * 1.8) * Math.cos(windTime * 0.7) * (1.5 + intensity * 10.0);
+          const gust = (Math.random() - 0.5) * (intensity * 8.0);
+          GAME.windForce = baseWind + gust;
+        } else {
+          GAME.windForce = 0.0;
+          GAME.windLevel = 0;
+        }
+      }
+
+      /* ============================================================
+       * 6. 粒子系统 (喷气粒子、碰撞火花、戳动气流)
+       * ============================================================ */
+      function createSparks(x, y, count, color = '#00f0ff', speed = 2) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = (0.5 + Math.random() * 1.5) * speed;
+          GAME.particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            life: 1.0,
+            decay: 0.02 + Math.random() * 0.04,
+            size: 1.5 + Math.random() * 2.5,
+            color: color
+          });
+        }
+      }
+
+      function updateParticles(dt) {
+        for (let i = GAME.particles.length - 1; i >= 0; i--) {
+          const p = GAME.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= p.decay;
+          if (p.life <= 0) {
+            GAME.particles.splice(i, 1);
+          }
+        }
+      }
+
+      /* ============================================================
+       * 7. 实时曲线数据缓冲 (PID 示波器)
+       * ============================================================ */
+      const chartData = {
+        maxPoints: 480, // ~8秒 (60Hz)
+        thetaHistory: [],
+        xHistory: []
+      };
+
+      function recordTelemetry() {
+        // 角度转换成度数更直观
+        const deg = (state.theta * 180 / Math.PI);
+        chartData.thetaHistory.push(deg);
+        chartData.xHistory.push(state.x);
+
+        if (chartData.thetaHistory.length > chartData.maxPoints) {
+          chartData.thetaHistory.shift();
+          chartData.xHistory.shift();
+        }
+      }
+
+      /* ============================================================
+       * 8. 绘制系统 (Canvas 渲染)
+       * ============================================================ */
+      const canvas = document.getElementById('sim-canvas');
+      const ctx = canvas.getContext('2d');
+      const chartCanvas = document.getElementById('chart-canvas');
+      const chartCtx = chartCanvas ? chartCanvas.getContext('2d') : null;
+
+      let viewScale = 180; // 1米对应画布像素数
+      let originY = 240;   // 轨道在画布的垂直中心偏下方
+
+      function resizeCanvases() {
+        const wrapper = document.getElementById('canvas-wrapper');
+        if (!wrapper) return;
+        const rect = wrapper.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.resetTransform && ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+
+        // 动态调整物理世界在屏幕上的缩放比例
+        // 确保轨道 (-2.2m 到 +2.2m) 居中可见，摆杆在垂直向上时留出充裕空间
+        const trackMargin = 80;
+        viewScale = Math.min((rect.width - trackMargin) / (PHYSICS.trackLimit * 2), (rect.height * 0.52) / PHYSICS.L);
+        originY = rect.height * 0.74;
+
+        if (chartCanvas) {
+          const chartRect = chartCanvas.parentElement.getBoundingClientRect();
+          chartCanvas.width = chartRect.width * dpr;
+          chartCanvas.height = chartRect.height * dpr;
+          if (chartCtx) {
+            chartCtx.resetTransform && chartCtx.resetTransform();
+            chartCtx.scale(dpr, dpr);
+          }
+        }
+      }
+
+      window.addEventListener('resize', resizeCanvases);
+
+      // 主场景绘制
+      function renderScene() {
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+        const centerX = w / 2;
+
+        // 1. 清空背景
+        ctx.fillStyle = '#060a14';
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. 科技感背景网格线
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.04)';
+        ctx.lineWidth = 1;
+        const gridStep = 32;
+        for (let x = 0; x < w; x += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+        for (let y = 0; y < h; y += gridStep) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // 3. 磁悬浮轨道渲染
+        const trackLeftPx = centerX - PHYSICS.trackLimit * viewScale;
+        const trackRightPx = centerX + PHYSICS.trackLimit * viewScale;
+        const trackY = originY;
+
+        // 轨道发光底层
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+        ctx.lineWidth = 14;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(trackLeftPx, trackY);
+        ctx.lineTo(trackRightPx, trackY);
+        ctx.stroke();
+
+        // 轨道核心亮线
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(trackLeftPx, trackY);
+        ctx.lineTo(trackRightPx, trackY);
+        ctx.stroke();
+
+        // 轨道端点磁力缓冲桩 (Barrier Stopper)
+        const barrierH = 34;
+        ctx.fillStyle = '#ff2a6d';
+        ctx.shadowColor = '#ff2a6d';
+        ctx.shadowBlur = 12;
+        ctx.fillRect(trackLeftPx - 10, trackY - barrierH / 2, 10, barrierH);
+        ctx.fillRect(trackRightPx, trackY - barrierH / 2, 10, barrierH);
+        ctx.shadowBlur = 0;
+
+        // 轨道刻度线与距离标签
+        ctx.fillStyle = '#556b85';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        for (let m = -2; m <= 2; m += 1) {
+          const tickX = centerX + m * viewScale;
+          ctx.strokeStyle = m === 0 ? '#00f0ff' : 'rgba(0, 240, 255, 0.35)';
+          ctx.lineWidth = m === 0 ? 2 : 1;
+          ctx.beginPath();
+          ctx.moveTo(tickX, trackY - 6);
+          ctx.lineTo(tickX, trackY + 6);
+          ctx.stroke();
+          ctx.fillText(m + 'm', tickX, trackY + 20);
+        }
+
+        // 4. 小车位置计算
+        const cartScreenX = centerX + state.x * viewScale;
+        const cartW = 74;
+        const cartH = 32;
+        const cartY = trackY - cartH / 2 - 4; // 悬浮离轨
+
+        // 小车推力喷焰粒子效果
+        const currentForce = (GAME.mode === 'manual' ? GAME.manualForce : (GAME.lastForce || 0.0));
+        if (Math.abs(currentForce) > 1.0 && !GAME.isGameOver) {
+          const thrustDir = currentForce > 0 ? -1 : 1;
+          const thrusterX = thrustDir === -1 ? cartScreenX - cartW / 2 : cartScreenX + cartW / 2;
+          createSparks(thrusterX, cartY + cartH / 2, 2, '#00f0ff', Math.min(4, Math.abs(currentForce) * 0.15));
+        }
+
+        // 绘制悬浮蓝光阴影
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+        ctx.beginPath();
+        ctx.ellipse(cartScreenX, trackY, cartW * 0.45, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 绘制小车车体 (Futuristic Hover Cart)
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(cartScreenX - cartW / 2, cartY - cartH / 2, cartW, cartH, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // 小车中央能源核心 (Glowing Reactor Core)
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#00f0ff';
+        ctx.beginPath();
+        ctx.arc(cartScreenX, cartY, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 小车两侧警示装饰条
+        ctx.fillStyle = 'rgba(255, 170, 0, 0.7)';
+        ctx.fillRect(cartScreenX - cartW / 2 + 5, cartY - 3, 8, 6);
+        ctx.fillRect(cartScreenX + cartW / 2 - 13, cartY - 3, 8, 6);
+
+        // 5. 倒立摆杆绘制
+        const pivotX = cartScreenX;
+        const pivotY = cartY; // 铰链中心
+
+        const poleLenPx = PHYSICS.L * viewScale;
+        // 摆杆顶端物理坐标：角度 theta 为 0 对应垂直向上
+        const tipX = pivotX + poleLenPx * Math.sin(state.theta);
+        const tipY = pivotY - poleLenPx * Math.cos(state.theta);
+
+        // 绘制 0° 理想垂直参考虚线
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(pivotX, pivotY - poleLenPx * 1.15);
+        ctx.stroke();
+        ctx.restore();
+
+        // 绘制 ±45° 危险极限角度安全扇形辅助线 (Manual 模式醒目提示)
+        ctx.save();
+        const limitRad = Math.PI / 4; // 45 deg
+        ctx.strokeStyle = 'rgba(255, 42, 109, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(pivotX + poleLenPx * Math.sin(limitRad), pivotY - poleLenPx * Math.cos(limitRad));
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(pivotX + poleLenPx * Math.sin(-limitRad), pivotY - poleLenPx * Math.cos(-limitRad));
+        ctx.stroke();
+        ctx.restore();
+
+        // 摆杆本体 (复合碳纤维发光杆)
+        const absTheta = Math.abs(state.theta);
+        // 根据倾斜角改变杆体颜色: 接近45度变成警告红色
+        let poleColor = '#00f0ff';
+        if (absTheta > Math.PI / 6) {
+          poleColor = '#ff2a6d';
+        } else if (absTheta > Math.PI / 12) {
+          poleColor = '#ffaa00';
+        }
+
+        ctx.shadowColor = poleColor;
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = poleColor;
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // 摆杆顶端发光端球 (Bob Tip)
+        ctx.shadowColor = poleColor;
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = poleColor;
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // 摆杆旋转铰链轴承圈
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(pivotX, pivotY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#00f0ff';
+        ctx.beginPath();
+        ctx.arc(pivotX, pivotY, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. 戳动视觉冲击波 (Poke Effect)
+        if (GAME.pokeImpulse > 0) {
+          ctx.save();
+          ctx.strokeStyle = `rgba(255, 170, 0, ${Math.min(1, GAME.pokeImpulse)})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(tipX, tipY, 20 + (1.0 - GAME.pokeImpulse) * 40, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          GAME.pokeImpulse = Math.max(0, GAME.pokeImpulse - 0.05);
+        }
+
+        // 7. 渲染火花与扰动粒子
+        for (let i = 0; i < GAME.particles.length; i++) {
+          const p = GAME.particles[i];
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.life;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+      }
+
+      // PID 模式实时示波器绘制
+      function renderChart() {
+        if (!chartCtx || GAME.mode !== 'pid') return;
+        const w = chartCanvas.width / (window.devicePixelRatio || 1);
+        const h = chartCanvas.height / (window.devicePixelRatio || 1);
+
+        // 背景
+        chartCtx.fillStyle = '#050912';
+        chartCtx.fillRect(0, 0, w, h);
+
+        const midY = h / 2;
+
+        // 网格线
+        chartCtx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        chartCtx.lineWidth = 1;
+        for (let y = 20; y < h; y += 30) {
+          chartCtx.beginPath();
+          chartCtx.moveTo(0, y);
+          chartCtx.lineTo(w, y);
+          chartCtx.stroke();
+        }
+        for (let x = 0; x < w; x += 40) {
+          chartCtx.beginPath();
+          chartCtx.moveTo(x, 0);
+          chartCtx.lineTo(x, h);
+          chartCtx.stroke();
+        }
+
+        // 零基准线 (Center zero axis)
+        chartCtx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        chartCtx.lineWidth = 1.5;
+        chartCtx.setLineDash([3, 3]);
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, midY);
+        chartCtx.lineTo(w, midY);
+        chartCtx.stroke();
+        chartCtx.setLineDash([]);
+
+        // 刻度文本
+        chartCtx.fillStyle = '#4e6179';
+        chartCtx.font = '9px monospace';
+        chartCtx.fillText('+20° / +1.0m', 6, 14);
+        chartCtx.fillText(' 0° /  0.0m', 6, midY - 3);
+        chartCtx.fillText('-20° / -1.0m', 6, h - 6);
+
+        const points = chartData.thetaHistory.length;
+        if (points < 2) return;
+
+        const maxAngleRange = 25.0; // ±25 度
+        const maxPosRange = 1.2;    // ±1.2 米
+
+        // 绘制轨迹 1: 角度 θ (Cyan #00f0ff)
+        chartCtx.strokeStyle = '#00f0ff';
+        chartCtx.lineWidth = 2;
+        chartCtx.shadowColor = '#00f0ff';
+        chartCtx.shadowBlur = 6;
+        chartCtx.beginPath();
+        for (let i = 0; i < points; i++) {
+          const x = (i / (chartData.maxPoints - 1)) * w;
+          const thetaVal = chartData.thetaHistory[i];
+          const y = midY - (thetaVal / maxAngleRange) * (midY - 15);
+          if (i === 0) chartCtx.moveTo(x, y);
+          else chartCtx.lineTo(x, y);
+        }
+        chartCtx.stroke();
+        chartCtx.shadowBlur = 0;
+
+        // 绘制轨迹 2: 小车位移 x (Amber #ffaa00)
+        chartCtx.strokeStyle = '#ffaa00';
+        chartCtx.lineWidth = 1.8;
+        chartCtx.shadowColor = '#ffaa00';
+        chartCtx.shadowBlur = 4;
+        chartCtx.beginPath();
+        for (let i = 0; i < points; i++) {
+          const x = (i / (chartData.maxPoints - 1)) * w;
+          const cartVal = chartData.xHistory[i];
+          const y = midY - (cartVal / maxPosRange) * (midY - 15);
+          if (i === 0) chartCtx.moveTo(x, y);
+          else chartCtx.lineTo(x, y);
+        }
+        chartCtx.stroke();
+        chartCtx.shadowBlur = 0;
+      }
+
+      /* ============================================================
+       * 9. 状态与 HUD 数据刷新
+       * ============================================================ */
+      const hudSurvival = document.getElementById('val-survival-time');
+      const hudHiscore = document.getElementById('val-hiscore');
+      const hudTheta = document.getElementById('val-theta');
+      const hudX = document.getElementById('val-x');
+      const statusBadge = document.getElementById('status-badge');
+      const statusText = document.getElementById('status-text');
+      const windHud = document.getElementById('wind-hud');
+      const windText = document.getElementById('wind-text');
+
+      function updateHUD() {
+        const thetaDeg = (state.theta * 180 / Math.PI);
+        hudTheta.textContent = `${thetaDeg >= 0 ? '+' : ''}${thetaDeg.toFixed(1)}°`;
+        hudX.textContent = `${state.x >= 0 ? '+' : ''}${state.x.toFixed(2)} m`;
+
+        if (GAME.mode === 'manual') {
+          hudSurvival.textContent = `${GAME.survivalTime.toFixed(2)} s`;
+          hudHiscore.textContent = `${GAME.highScore.toFixed(2)} s`;
+
+          // 扰动风力显示
+          if (GAME.survivalTime > 3.0) {
+            windHud.classList.remove('hidden');
+            windText.textContent = `Lv.${GAME.windLevel} (${GAME.windForce >= 0 ? '+' : ''}${GAME.windForce.toFixed(1)}N)`;
+          } else {
+            windHud.classList.add('hidden');
+          }
+
+          // 手动模式状态
+          const absDeg = Math.abs(thetaDeg);
+          if (absDeg < 10) {
+            setStatus('stable', '平衡良好 BALANCED');
+          } else if (absDeg < 30) {
+            setStatus('tuning', '倾角偏大 CAUTION');
+          } else {
+            setStatus('danger', '即将失控 DANGER!');
+          }
+        } else {
+          // PID 模式状态指示
+          hudSurvival.textContent = '自动运行中';
+          hudHiscore.textContent = '--';
+          windHud.classList.add('hidden');
+
+          const absDeg = Math.abs(thetaDeg);
+          const absOmega = Math.abs(state.omega);
+          const absV = Math.abs(state.v);
+          const absX = Math.abs(state.x);
+
+          if (absDeg > 45 || absX >= PHYSICS.trackLimit) {
+            setStatus('danger', '摆杆倾覆 DIVERGED');
+          } else if (absDeg < 0.5 && absX < 0.1 && absOmega < 0.08 && absV < 0.08) {
+            setStatus('stable', '完美稳定 LOCKED (稳态)');
+          } else if (absDeg < 3.0 && absX < 0.4) {
+            setStatus('tuning', '动态微调 TUNING');
+          } else {
+            setStatus('danger', '抗扰回正中 RECOVERING');
+          }
+        }
+      }
+
+      function setStatus(type, text) {
+        statusBadge.className = `status-badge ${type}`;
+        statusText.textContent = text;
+      }
+
+      function resetState(initialTheta = 0.02) {
+        state.x = 0.0;
+        state.v = 0.0;
+        state.theta = initialTheta; // 初始角度约 0.02 rad (~1.15°)
+        state.omega = 0.0;
+        pid.integralTheta = 0.0;
+        GAME.manualForce = 0.0;
+        GAME.lastForce = 0.0;
+        GAME.survivalTime = 0.0;
+        GAME.isGameOver = false;
+        GAME.windForce = 0.0;
+        GAME.windLevel = 0;
+        windTime = 0;
+        keyState.left = false;
+        keyState.right = false;
+        touchActive.leftPointers.clear();
+        touchActive.rightPointers.clear();
+        document.querySelectorAll('.arrow-pad-btn, .touch-zone').forEach(el => el.classList.remove('active'));
+        GAME.particles = [];
+        chartData.thetaHistory = [];
+        chartData.xHistory = [];
+      }
+
+      let countdownTimer = null;
+      let countdownHideTimeout = null;
+
+      function startCountdown(onComplete) {
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+        }
+        if (countdownHideTimeout) {
+          clearTimeout(countdownHideTimeout);
+          countdownHideTimeout = null;
+        }
+
+        GAME.isCountingDown = true;
+        GAME.isPaused = false;
+        resetState(0.02);
+
+        const overlay = document.getElementById('countdown-overlay');
+        const numberEl = document.getElementById('countdown-number');
+        const tipEl = document.getElementById('countdown-tip');
+
+        let count = 3;
+        if (overlay) {
+          overlay.classList.remove('hidden');
+        }
+
+        function showCount() {
+          // 倒计时 3, 2, 1 期间摆杆始终保持锁定在 0.02 rad
+          state.x = 0.0;
+          state.v = 0.0;
+          state.theta = 0.02;
+          state.omega = 0.0;
+          GAME.manualForce = 0.0;
+          GAME.windForce = 0.0;
+          GAME.survivalTime = 0.0;
+
+          if (numberEl) {
+            numberEl.textContent = count;
+            numberEl.classList.remove('countdown-pop-anim');
+            void numberEl.offsetWidth;
+            numberEl.classList.add('countdown-pop-anim');
+          }
+
+          if (tipEl) {
+            tipEl.textContent = '准备保持平衡... 摆杆已锁定';
+          }
+
+          sounds.playBlip(520, 'sine', 0.1, 0.25);
+          setStatus('tuning', `准备就绪 倒计时 ${count}...`);
+        }
+
+        showCount();
+
+        countdownTimer = setInterval(() => {
+          count--;
+          if (count > 0) {
+            showCount();
+          } else if (count === 0) {
+            // 显示“GO!”：摆杆立即解锁、生存时间立即开始计时 (Issue 3)
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            GAME.isCountingDown = false;
+            GAME.survivalTime = 0.0;
+            windTime = 0;
+            GAME.windForce = 0.0;
+
+            sounds.playBlip(880, 'sine', 0.2, 0.35);
+            setStatus('stable', '平衡良好 BALANCED');
+
+            if (numberEl) {
+              numberEl.textContent = 'GO!';
+              numberEl.classList.remove('countdown-pop-anim');
+              void numberEl.offsetWidth;
+              numberEl.classList.add('countdown-pop-anim');
+            }
+            if (tipEl) {
+              tipEl.textContent = '挑战开始！保持平衡！';
+            }
+
+            if (onComplete) onComplete();
+
+            // GO! 显示 0.35 秒后迅速消失，不遮挡摆杆与视线
+            countdownHideTimeout = setTimeout(() => {
+              if (overlay && !GAME.isCountingDown) {
+                overlay.classList.add('hidden');
+              }
+              countdownHideTimeout = null;
+            }, 350);
+          }
+        }, 1000);
+      }
+
+      function gameOver(reason) {
+        if (GAME.isGameOver) return;
+        GAME.isGameOver = true;
+        sounds.playGameOver();
+
+        // 检查新高分
+        const isNewRecord = GAME.survivalTime > GAME.highScore && GAME.survivalTime > 1.0;
+        if (isNewRecord) {
+          GAME.highScore = GAME.survivalTime;
+          try {
+            localStorage.setItem(LS_KEY, GAME.highScore.toFixed(2));
+          } catch(e) {}
+          sounds.playVictory();
+        }
+
+        // 显示结算弹窗
+        document.getElementById('gameover-reason').textContent = reason;
+        document.getElementById('modal-final-time').textContent = `${GAME.survivalTime.toFixed(2)} s`;
+        document.getElementById('modal-best-time').textContent = `${GAME.highScore.toFixed(2)} s`;
+
+        const recordEl = document.getElementById('modal-new-record');
+        if (isNewRecord) {
+          recordEl.classList.remove('hidden');
+        } else {
+          recordEl.classList.add('hidden');
+        }
+
+        document.getElementById('modal-gameover').classList.add('active');
+      }
+
+      /* ============================================================
+       * 10. 物理步进与游戏主循环 (Fixed Substep RK4 Loop)
+       * ============================================================ */
+      let lastTimestamp = 0;
+      let physicsAccumulator = 0;
+      const FIXED_DT = 0.005; // 5ms 固定物理小步长，真实时间无放大
+
+      function stepPhysics(dt) {
+        if (GAME.mode === 'manual') {
+          updateDisturbances(dt);
+          const netForce = GAME.manualForce + GAME.windForce;
+          GAME.survivalTime += dt;
+
+          const next = rk4Step(state, netForce, dt * PHYSICS.timeScale);
+          state.x = next.x;
+          state.v = next.v;
+          state.theta = next.theta;
+          state.omega = next.omega;
+
+          // 手动模式死亡判定
+          const absAngleDeg = Math.abs(state.theta * 180 / Math.PI);
+          if (absAngleDeg > 45.0) {
+            gameOver(`摆杆偏角达到 ${absAngleDeg.toFixed(1)}°，超过极限 45° 安全范围！`);
+            return;
+          }
+          if (Math.abs(state.x) >= PHYSICS.trackLimit) {
+            gameOver('小车高速撞击轨道缓冲端点！');
+            return;
+          }
+        } else {
+          // PID 模式使用真实时间步长计算，消除时标缩放导致的过度迟滞，确保 5 秒内迅速回到稳态并消除误差
+          const stepDt = dt;
+          const netForce = computePIDForce(stepDt, true);
+          GAME.lastForce = netForce;
+          const next = rk4Step(state, netForce, stepDt);
+          state.x = next.x;
+          state.v = next.v;
+          state.theta = next.theta;
+          state.omega = next.omega;
+
+          // PID 模式边缘弹性软碰撞
+          if (Math.abs(state.x) > PHYSICS.trackLimit) {
+            state.x = Math.sign(state.x) * PHYSICS.trackLimit;
+            state.v = -state.v * 0.3; // 阻尼反弹
+          }
+        }
+      }
+
+      function gameLoop(timestamp) {
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        let elapsed = (timestamp - lastTimestamp) / 1000.0;
+        lastTimestamp = timestamp;
+
+        // 避免切换标签页带来的极长时间步长异常
+        if (elapsed > 0.1) elapsed = 0.1;
+
+        if (GAME.hasStarted && !GAME.isPaused && !GAME.isGameOver && !GAME.isCountingDown) {
+          // 固定小步长 dt，按 requestAnimationFrame 经过真实时间累计 (Requirement 2)
+          physicsAccumulator += elapsed;
+          if (physicsAccumulator > 0.1) physicsAccumulator = 0.1;
+
+          while (physicsAccumulator >= FIXED_DT) {
+            stepPhysics(FIXED_DT);
+            physicsAccumulator -= FIXED_DT;
+            if (GAME.isGameOver) {
+              physicsAccumulator = 0;
+              break;
+            }
+          }
+
+          // 记录遥测曲线数据
+          recordTelemetry();
+        } else {
+          physicsAccumulator = 0;
+          if (GAME.isCountingDown) {
+            // 倒计时期间摆杆完全锁定在 0.02 rad
+            state.x = 0.0;
+            state.v = 0.0;
+            state.theta = 0.02;
+            state.omega = 0.0;
+          }
+        }
+
+        // 粒子与画面绘制
+        updateParticles(elapsed);
+        renderScene();
+        renderChart();
+        updateHUD();
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      /* ============================================================
+       * 11. 输入控制绑定 (按键、手机左右半区、底部◀▶按钮持续按住)
+       * ============================================================ */
+      const keyState = {
+        left: false,
+        right: false
+      };
+
+      // 跟踪所有活跃触控/指针：id -> 'left' | 'right'
+      const activeTouches = new Map();
+
+      // 保留 touchActive 接口以兼容自动化测试 (Requirement 4 & 6)
+      const touchActive = {
+        leftPointers: {
+          get size() {
+            let count = 0;
+            for (const dir of activeTouches.values()) {
+              if (dir === 'left') count++;
+            }
+            return count;
+          },
+          has(id) { return activeTouches.get(id) === 'left'; },
+          add(id) { activeTouches.set(id, 'left'); updatePushForce(); },
+          delete(id) { if (activeTouches.get(id) === 'left') activeTouches.delete(id); updatePushForce(); },
+          clear() {
+            for (const [id, dir] of activeTouches.entries()) {
+              if (dir === 'left') activeTouches.delete(id);
+            }
+            updatePushForce();
+          }
+        },
+        rightPointers: {
+          get size() {
+            let count = 0;
+            for (const dir of activeTouches.values()) {
+              if (dir === 'right') count++;
+            }
+            return count;
+          },
+          has(id) { return activeTouches.get(id) === 'right'; },
+          add(id) { activeTouches.set(id, 'right'); updatePushForce(); },
+          delete(id) { if (activeTouches.get(id) === 'right') activeTouches.delete(id); updatePushForce(); },
+          clear() {
+            for (const [id, dir] of activeTouches.entries()) {
+              if (dir === 'right') activeTouches.delete(id);
+            }
+            updatePushForce();
+          }
+        }
+      };
+
+      const touchLeft = document.getElementById('touch-left');
+      const touchRight = document.getElementById('touch-right');
+      const btnTouchLeft = document.getElementById('btn-touch-left');
+      const btnTouchRight = document.getElementById('btn-touch-right');
+      const canvasWrapper = document.getElementById('canvas-wrapper');
+
+      function updatePushForce() {
+        if (GAME.mode !== 'manual') return;
+
+        let hasLeft = keyState.left;
+        let hasRight = keyState.right;
+
+        for (const dir of activeTouches.values()) {
+          if (dir === 'left') hasLeft = true;
+          if (dir === 'right') hasRight = true;
+        }
+
+        if (touchLeft) touchLeft.classList.toggle('active', hasLeft);
+        if (btnTouchLeft) btnTouchLeft.classList.toggle('active', hasLeft);
+        if (touchRight) touchRight.classList.toggle('active', hasRight);
+        if (btnTouchRight) btnTouchRight.classList.toggle('active', hasRight);
+
+        if (hasLeft && !hasRight) {
+          GAME.manualForce = -GAME.maxPushForce;
+        } else if (hasRight && !hasLeft) {
+          GAME.manualForce = GAME.maxPushForce;
+        } else {
+          GAME.manualForce = 0.0;
+        }
+      }
+
+      // 键盘监听
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+          keyState.left = true;
+          updatePushForce();
+        } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+          keyState.right = true;
+          updatePushForce();
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          togglePause();
+        } else if (e.code === 'KeyR') {
+          restartSimulation();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+          keyState.left = false;
+          updatePushForce();
+        } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+          keyState.right = false;
+          updatePushForce();
+        }
+      });
+
+      // 判定触控点属于左半区还是右半区 (全屏左右半区判定)
+      function resolveTouchDirection(target, clientX) {
+        if (target && target.closest) {
+          if (target.closest('#btn-touch-left, #touch-left')) return 'left';
+          if (target.closest('#btn-touch-right, #touch-right')) return 'right';
+        }
+        if (canvasWrapper) {
+          const rect = canvasWrapper.getBoundingClientRect();
+          if (clientX >= rect.left && clientX <= rect.right) {
+            return clientX < (rect.left + rect.width / 2) ? 'left' : 'right';
+          }
+        }
+        return (clientX !== undefined && clientX < window.innerWidth / 2) ? 'left' : 'right';
+      }
+
+      // 触控事件处理程序 (touchstart, touchmove, touchend, touchcancel)
+      function handleTouchStart(e) {
+        if (e.target && e.target.closest && e.target.closest('header, .modal, .pid-dashboard')) return;
+        if (e.cancelable) e.preventDefault();
+        sounds.init();
+
+        const touches = e.changedTouches || [e];
+        for (let i = 0; i < touches.length; i++) {
+          const t = touches[i];
+          const id = t.identifier !== undefined ? t.identifier : (t.pointerId !== undefined ? t.pointerId : 'touch');
+          activeTouches.set(id, resolveTouchDirection(t.target || e.target, t.clientX));
+        }
+        updatePushForce();
+      }
+
+      function handleTouchMove(e) {
+        if (e.target && e.target.closest && e.target.closest('header, .modal, .pid-dashboard')) return;
+        if (e.cancelable) e.preventDefault();
+
+        const touches = e.changedTouches || [e];
+        for (let i = 0; i < touches.length; i++) {
+          const t = touches[i];
+          const id = t.identifier !== undefined ? t.identifier : (t.pointerId !== undefined ? t.pointerId : 'touch');
+          if (activeTouches.has(id)) {
+            activeTouches.set(id, resolveTouchDirection(t.target || e.target, t.clientX));
+          }
+        }
+        updatePushForce();
+      }
+
+      function handleTouchEnd(e) {
+        if (e.cancelable) e.preventDefault();
+
+        const touches = e.changedTouches || [e];
+        for (let i = 0; i < touches.length; i++) {
+          const t = touches[i];
+          const id = t.identifier !== undefined ? t.identifier : (t.pointerId !== undefined ? t.pointerId : 'touch');
+          activeTouches.delete(id);
+        }
+        updatePushForce();
+      }
+
+      // 绑定游戏区域全屏左右半区与底部按钮的 touch 事件，均显式添加 { passive: false }
+      const touchOpts = { passive: false };
+      const touchElements = [window, canvasWrapper, touchLeft, touchRight, btnTouchLeft, btnTouchRight];
+
+      touchElements.forEach(el => {
+        if (!el) return;
+        el.addEventListener('touchstart', (e) => {
+          if (e._touchHandled) return;
+          e._touchHandled = true;
+          handleTouchStart(e);
+        }, touchOpts);
+
+        el.addEventListener('touchmove', (e) => {
+          if (e._touchHandled) return;
+          e._touchHandled = true;
+          handleTouchMove(e);
+        }, touchOpts);
+
+        el.addEventListener('touchend', (e) => {
+          if (e._touchHandled) return;
+          e._touchHandled = true;
+          handleTouchEnd(e);
+        }, touchOpts);
+
+        el.addEventListener('touchcancel', (e) => {
+          if (e._touchHandled) return;
+          e._touchHandled = true;
+          handleTouchEnd(e);
+        }, touchOpts);
+      });
+
+      // 桌面端鼠标按住支持
+      function bindMouseSupport(el, isLeft) {
+        if (!el) return;
+        el.addEventListener('mousedown', (e) => {
+          if (e.cancelable) e.preventDefault();
+          sounds.init();
+          activeTouches.set('mouse', isLeft ? 'left' : 'right');
+          updatePushForce();
+        });
+        const stopMouse = (e) => {
+          if (e && e.cancelable) e.preventDefault();
+          activeTouches.delete('mouse');
+          updatePushForce();
+        };
+        el.addEventListener('mouseup', stopMouse);
+        el.addEventListener('mouseleave', stopMouse);
+      }
+      bindMouseSupport(touchLeft, true);
+      bindMouseSupport(touchRight, false);
+      bindMouseSupport(btnTouchLeft, true);
+      bindMouseSupport(btnTouchRight, false);
+
+      window.addEventListener('blur', () => {
+        keyState.left = false;
+        keyState.right = false;
+        activeTouches.clear();
+        updatePushForce();
+      });
+
+      /* ============================================================
+       * 12. 模式切换与交互按钮 (保留所有现有ID)
+       * ============================================================ */
+      const btnManual = document.getElementById('btn-manual');
+      const btnPid = document.getElementById('btn-pid');
+      const btnPause = document.getElementById('btn-pause');
+      const btnRestart = document.getElementById('btn-restart');
+      const btnPoke = document.getElementById('btn-poke');
+      const btnSound = document.getElementById('btn-sound');
+      const btnHelp = document.getElementById('btn-help');
+
+      const pidDashboard = document.getElementById('pid-dashboard');
+      const touchControls = document.getElementById('touch-controls');
+      const manualBottomControls = document.getElementById('manual-bottom-controls');
+      const footerManual = document.getElementById('footer-manual-hints');
+      const footerPid = document.getElementById('footer-pid-hints');
+
+      function switchMode(newMode) {
+        GAME.mode = newMode;
+        sounds.playBlip(580);
+
+        if (newMode === 'manual') {
+          btnManual.classList.add('active');
+          btnPid.classList.remove('active');
+          pidDashboard.classList.add('hidden');
+          touchControls.classList.remove('hidden');
+          if (manualBottomControls) manualBottomControls.classList.remove('hidden');
+          footerManual.classList.remove('hidden');
+          footerPid.classList.add('hidden');
+          if (GAME.hasStarted) {
+            startCountdown();
+          } else {
+            resetState(0.02);
+          }
+        } else {
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+          }
+          if (countdownHideTimeout) {
+            clearTimeout(countdownHideTimeout);
+            countdownHideTimeout = null;
+          }
+          GAME.isCountingDown = false;
+          const overlay = document.getElementById('countdown-overlay');
+          if (overlay) overlay.classList.add('hidden');
+
+          btnPid.classList.add('active');
+          btnManual.classList.remove('active');
+          pidDashboard.classList.remove('hidden');
+          touchControls.classList.add('hidden');
+          if (manualBottomControls) manualBottomControls.classList.add('hidden');
+          footerManual.classList.add('hidden');
+          footerPid.classList.remove('hidden');
+          resizeCanvases();
+          resetState(0.12); // PID 启动时带小扰动以演示回正过程
+        }
+      }
+
+      btnManual.addEventListener('click', () => switchMode('manual'));
+      btnPid.addEventListener('click', () => switchMode('pid'));
+
+      function togglePause() {
+        if (GAME.isCountingDown) return;
+        GAME.isPaused = !GAME.isPaused;
+        sounds.playBlip(GAME.isPaused ? 320 : 640);
+        const icon = document.getElementById('pause-icon');
+        const text = document.getElementById('pause-text');
+        if (GAME.isPaused) {
+          icon.textContent = '▶';
+          text.textContent = '继续';
+          btnPause.classList.add('accent');
+        } else {
+          icon.textContent = '⏸';
+          text.textContent = '暂停';
+          btnPause.classList.remove('accent');
+        }
+      }
+
+      btnPause.addEventListener('click', togglePause);
+
+      function restartSimulation() {
+        sounds.playBlip(720);
+        document.getElementById('modal-gameover').classList.remove('active');
+        if (GAME.isPaused) togglePause();
+        if (GAME.mode === 'manual') {
+          startCountdown();
+        } else {
+          resetState(0.12);
+        }
+      }
+
+      btnRestart.addEventListener('click', restartSimulation);
+
+      // 戳一下扰动摆杆
+      btnPoke.addEventListener('click', () => {
+        sounds.playPoke();
+        // 随机给摆杆施加 ±(0.9 ~ 1.5) rad/s 角速度脉冲
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        const impulse = dir * (1.0 + Math.random() * 0.6);
+        state.omega += impulse;
+        GAME.pokeImpulse = 1.0;
+
+        // 并在摆球位置生成金色冲击波火花
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const centerX = w / 2;
+        const cartScreenX = centerX + state.x * viewScale;
+        const poleLenPx = PHYSICS.L * viewScale;
+        const tipX = cartScreenX + poleLenPx * Math.sin(state.theta);
+        const tipY = (originY - 20) - poleLenPx * Math.cos(state.theta);
+        createSparks(tipX, tipY, 12, '#ffaa00', 3.5);
+      });
+
+      // 回正中心按钮
+      const btnZeroCart = document.getElementById('btn-zero-cart');
+      if (btnZeroCart) {
+        btnZeroCart.addEventListener('click', () => {
+          sounds.playBlip(500);
+          state.x = 0;
+          state.v = 0;
+        });
+      }
+
+      // 音效开关
+      btnSound.addEventListener('click', () => {
+        const enabled = sounds.toggle();
+        document.getElementById('sound-icon').textContent = enabled ? '🔊' : '🔇';
+      });
+
+      // 帮助弹窗
+      btnHelp.addEventListener('click', () => {
+        document.getElementById('modal-help').classList.add('active');
+      });
+      document.getElementById('modal-btn-close-help').addEventListener('click', () => {
+        document.getElementById('modal-help').classList.remove('active');
+      });
+
+      // 开始弹窗事件
+      document.getElementById('modal-btn-start-manual').addEventListener('click', () => {
+        sounds.init();
+        document.getElementById('modal-start').classList.remove('active');
+        GAME.hasStarted = true;
+        switchMode('manual');
+      });
+      document.getElementById('modal-btn-start-pid').addEventListener('click', () => {
+        sounds.init();
+        document.getElementById('modal-start').classList.remove('active');
+        GAME.hasStarted = true;
+        switchMode('pid');
+      });
+
+      // 失败弹窗事件：点“再试一次”同样经过倒计时 (Requirement 3)
+      document.getElementById('modal-btn-retry').addEventListener('click', () => {
+        restartSimulation();
+      });
+      document.getElementById('modal-btn-switch-pid').addEventListener('click', () => {
+        document.getElementById('modal-gameover').classList.remove('active');
+        GAME.hasStarted = true;
+        switchMode('pid');
+      });
+
+      /* ============================================================
+       * 13. PID 参数滑块与预设响应
+       * ============================================================ */
+      function bindSlider(sliderId, valId, key, stepDecimals = 1) {
+        const slider = document.getElementById(sliderId);
+        const valSpan = document.getElementById(valId);
+        slider.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          pid[key] = val;
+          valSpan.textContent = val.toFixed(stepDecimals);
+        });
+      }
+
+      bindSlider('slider-kp', 'val-kp', 'kp', 1);
+      bindSlider('slider-ki', 'val-ki', 'ki', 1);
+      bindSlider('slider-kd', 'val-kd', 'kd', 1);
+      bindSlider('slider-kpx', 'val-kpx', 'kpx', 1);
+      bindSlider('slider-kdx', 'val-kdx', 'kdx', 1);
+
+      function setPidParams(kp, ki, kd, kpx, kdx) {
+        pid.kp = kp;
+        pid.ki = ki;
+        pid.kd = kd;
+        pid.kpx = kpx;
+        pid.kdx = kdx;
+
+        document.getElementById('slider-kp').value = kp;
+        document.getElementById('val-kp').textContent = kp.toFixed(1);
+
+        document.getElementById('slider-ki').value = ki;
+        document.getElementById('val-ki').textContent = ki.toFixed(1);
+
+        document.getElementById('slider-kd').value = kd;
+        document.getElementById('val-kd').textContent = kd.toFixed(1);
+
+        document.getElementById('slider-kpx').value = kpx;
+        document.getElementById('val-kpx').textContent = kpx.toFixed(1);
+
+        document.getElementById('slider-kdx').value = kdx;
+        document.getElementById('val-kdx').textContent = kdx.toFixed(1);
+      }
+
+      // 预设配置
+      document.querySelectorAll('.chip-btn[data-preset]').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          sounds.playBlip(600);
+          const preset = e.target.getAttribute('data-preset');
+          if (preset === 'balanced') {
+            setPidParams(85.0, 1.2, 18.0, 3.5, 4.8);
+          } else if (preset === 'aggressive') {
+            setPidParams(160.0, 2.5, 32.0, 6.0, 7.5);
+          } else if (preset === 'underdamped') {
+            setPidParams(70.0, 0.4, 5.0, 2.0, 2.5);
+          }
+        });
+      });
+
+      /* ============================================================
+       * 14. 页面初始化
+       * ============================================================ */
+      window.addEventListener('load', () => {
+        resizeCanvases();
+        resetState(0.02);
+        updateHUD();
+        requestAnimationFrame(gameLoop);
+      });
+
+    })();
+  </script>
+</body>
+</html>
