@@ -4,6 +4,7 @@ export const projects = [
     title: "倒立摆小游戏",
     description: "控制小车，让摇摇欲坠的摆杆保持直立。",
     link: "./pendulum/",
+    detail: "./projects/pendulum.html",
     image: null,
     tags: ["网页小游戏", "机器人", "交互实验"],
   },

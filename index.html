@@ -51,40 +51,52 @@
         </section>
 
         <section class="projects enter" aria-labelledby="projects-title">
-          <h2 class="section-title" id="projects-title">作品集</h2>
+          <div class="section-heading">
+            <h2 class="section-title" id="projects-title">作品集</h2>
+            <p class="section-note">一些能打开、能体验的小想法。</p>
+          </div>
           <div class="project-filters" role="group" aria-label="按标签筛选作品" hidden></div>
           <p class="project-status" id="project-status" role="status" aria-live="polite" aria-atomic="true"></p>
           <!-- 静态卡片保证 file://、禁用 JS 或模块加载失败时作品仍完整可见。
                main.js 加载成功后使用 projects.js 的数据增强渲染与筛选。 -->
           <div class="project-grid" id="project-grid">
-            <a class="project-card" href="./pendulum/" aria-labelledby="project-title-0" aria-describedby="project-description-0">
-              <div class="thumbnail">
-                <svg class="pendulum-drawing" viewBox="0 0 480 240" fill="none" aria-hidden="true" focusable="false">
-                  <g class="diagram-guides" stroke="currentColor" stroke-width="1">
-                    <path d="M62 189H418"/>
-                  </g>
-                  <g class="diagram-cart" stroke="currentColor" stroke-width="2">
-                    <rect x="197" y="147" width="86" height="26" rx="5" fill="var(--thumbnail)"/>
-                    <path d="M240 145 267 61" stroke-width="4" stroke-linecap="round"/>
-                    <circle cx="213" cy="180" r="7" fill="var(--thumbnail)"/>
-                    <circle cx="267" cy="180" r="7" fill="var(--thumbnail)"/>
-                    <path d="M209 160h12m7 0h9" stroke-width="1.5" stroke-linecap="round"/>
-                  </g>
-                  <circle class="diagram-weight" cx="267" cy="61" r="10"/>
-                  <circle class="diagram-pivot" cx="240" cy="147" r="4"/>
-                </svg>
-              </div>
-              <div class="project-title-row">
-                <h3 id="project-title-0">倒立摆小游戏</h3>
-              </div>
-              <p class="project-description" id="project-description-0">控制小车，让摇摇欲坠的摆杆保持直立。</p>
-              <ul class="project-tags" aria-label="作品标签">
-                <li>网页小游戏</li>
-                <li>机器人</li>
-                <li>交互实验</li>
-              </ul>
-              <span class="project-action">查看作品<span class="project-arrow" aria-hidden="true">→</span></span>
-            </a>
+            <article class="project-entry">
+              <a class="project-card" href="./pendulum/" aria-labelledby="project-title-0" aria-describedby="project-description-0">
+                <div class="thumbnail">
+                  <svg class="pendulum-drawing" viewBox="0 0 480 240" fill="none" aria-hidden="true" focusable="false">
+                    <g class="diagram-guides" stroke="currentColor" stroke-width="1">
+                      <path d="M62 189H418"/>
+                    </g>
+                    <g class="diagram-cart" stroke="currentColor" stroke-width="2">
+                      <rect x="197" y="147" width="86" height="26" rx="5" fill="var(--thumbnail)"/>
+                      <path d="M240 145 267 61" stroke-width="4" stroke-linecap="round"/>
+                      <circle cx="213" cy="180" r="7" fill="var(--thumbnail)"/>
+                      <circle cx="267" cy="180" r="7" fill="var(--thumbnail)"/>
+                      <path d="M209 160h12m7 0h9" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <circle class="diagram-weight" cx="267" cy="61" r="10"/>
+                    <circle class="diagram-pivot" cx="240" cy="147" r="4"/>
+                  </svg>
+                </div>
+                <div class="project-title-row">
+                  <h3 id="project-title-0">倒立摆小游戏</h3>
+                </div>
+                <p class="project-description" id="project-description-0">控制小车，让摇摇欲坠的摆杆保持直立。</p>
+                <ul class="project-tags" aria-label="作品标签">
+                  <li>网页小游戏</li>
+                  <li>机器人</li>
+                  <li>交互实验</li>
+                </ul>
+                <span class="project-action">查看作品<span class="project-arrow" aria-hidden="true">→</span></span>
+              </a>
+              <a class="project-detail-link text-link" href="./projects/pendulum.html">玩法与详情<span class="visually-hidden">：倒立摆小游戏</span><span aria-hidden="true"> →</span></a>
+            </article>
+            <article class="project-card coming-soon" aria-labelledby="coming-soon-title">
+              <div class="thumbnail coming-soon-preview" aria-hidden="true"><span>＋</span></div>
+              <div class="project-title-row"><h3 id="coming-soon-title">更多作品开发中</h3></div>
+              <p class="project-description">正在慢慢积累，下一件作品留在这里。</p>
+              <p class="coming-soon-note">从一个想法，到能跑起来。</p>
+            </article>
           </div>
         </section>
       </main>

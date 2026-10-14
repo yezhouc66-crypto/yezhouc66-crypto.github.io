@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="倒立摆小游戏的玩法说明，以及可尝试的 PID 调参和 LQR 学习方向。">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:site_name" content="早风爽的作品集">
+    <meta property="og:title" content="倒立摆小游戏 · 早风爽的作品集">
+    <meta property="og:description" content="控制小车，让摆杆保持直立；了解玩法与可尝试的控制原理。">
+    <title>倒立摆小游戏 · 早风爽的作品集</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+    <script src="../theme.js"></script>
+    <link rel="stylesheet" href="../style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="page">
+      <header class="site-header">
+        <nav aria-label="页面导航">
+          <a href="../index.html#projects-title">← 返回作品集</a>
+          <a href="#how-to-play">玩法</a>
+          <a href="#control-ideas">可尝试的控制原理</a>
+        </nav>
+        <button class="theme-toggle" id="theme-toggle" type="button" hidden>主题：跟随系统</button>
+      </header>
+      <main id="main-content" tabindex="-1">
+        <article class="project-detail">
+          <header class="detail-hero enter">
+            <p class="eyebrow">网页小游戏 / 交互实验</p>
+            <h1>倒立摆小游戏</h1>
+            <p class="detail-lead">控制小车，让摇摇欲坠的摆杆保持直立。<br>在一次次微调里，感受平衡与反馈。</p>
+            <div class="detail-actions">
+              <a class="primary-link" href="../pendulum/">开始试玩 <span aria-hidden="true">→</span></a>
+              <a class="text-link" href="#how-to-play">先看玩法</a>
+            </div>
+          </header>
+
+          <section class="detail-section" id="how-to-play" aria-labelledby="play-title">
+            <div class="detail-section-heading">
+              <p class="eyebrow" aria-hidden="true">01 / PLAY</p>
+              <h2 id="play-title">怎么玩</h2>
+            </div>
+            <div class="detail-copy">
+              <p>进入游戏后选择手动挑战，尝试移动小车接住摆杆；也可以选择现有的 PID 演示，观察自动控制和参数变化。</p>
+              <dl class="controls-list">
+                <div><dt>电脑</dt><dd><kbd>←</kbd> / <kbd>→</kbd> 或 <kbd>A</kbd> / <kbd>D</kbd> 控制左右推力。</dd></div>
+                <div><dt>手机</dt><dd>按住游戏区左／右半区，或底部的左右按钮。</dd></div>
+                <div><dt>暂停与重来</dt><dd><kbd>空格</kbd> 暂停／继续，<kbd>R</kbd> 重新开始；也可点击游戏内按钮。</dd></div>
+                <div><dt>手动挑战</dt><dd>摆杆倾斜超过 ±45°，或小车撞到轨道端点时结束；坚持越久，扰动越强。</dd></div>
+              </dl>
+              <p class="detail-tip">可以先用短促、小幅的操作观察反馈，再逐渐调整，避免持续向一边推。</p>
+            </div>
+          </section>
+
+          <section class="detail-section" id="control-ideas" aria-labelledby="control-title">
+            <div class="detail-section-heading">
+              <p class="eyebrow" aria-hidden="true">02 / EXPLORE</p>
+              <h2 id="control-title">可尝试的控制原理</h2>
+            </div>
+            <div class="detail-copy">
+              <p>下面是围绕倒立摆可尝试的学习方向。现有游戏可体验 PID 调参；LQR 是可另行建模、实现的拓展思路，不代表本站已完成 LQR 控制或实物验证。</p>
+              <div class="control-note">
+                <h3>PID：从误差出发</h3>
+                <p>比例项 P 根据当前误差作出响应，积分项 I 累积过去的误差，微分项 D 关注误差的变化趋势。可以尝试在 PID 演示里每次只调整一个参数，观察摆杆的回正、振荡和小车位置变化；参数效果需要结合系统观察，不能保证越大越好。<a class="text-link source-link" href="https://ctms.engin.umich.edu/CTMS/?example=Introduction&amp;section=ControlPID">参考：CTMS 的 PID 入门</a></p>
+              </div>
+              <div class="control-note">
+                <h3>LQR：一起考虑状态与用力</h3>
+                <p>可以尝试在直立平衡点附近建立线性模型，把小车位置、速度、摆杆角度和角速度作为状态，再用 Q、R 权重平衡状态偏差与控制输入的代价。它是一个局部平衡控制的学习方向，不能据此假定大角度时也能稳定。<a class="text-link source-link" href="https://underactuated.mit.edu/lqr.html">参考：MIT 的 LQR 课程笔记</a></p>
+              </div>
+              <p class="detail-tip">若以后做对比实验，可尝试固定初始偏角与扰动条件，再记录回正时间、超调和小车偏移；这里暂不展示尚未测量的结果。</p>
+            </div>
+          </section>
+
+          <nav class="detail-bottom-nav" aria-label="作品操作">
+            <a class="text-link" href="../index.html#projects-title">← 返回作品集</a>
+            <a class="primary-link" href="../pendulum/">去试试看 <span aria-hidden="true">→</span></a>
+          </nav>
+        </article>
+      </main>
+      <footer>
+        <a class="github-link" href="https://github.com/yezhouc66-crypto">GitHub</a>
+      </footer>
+    </div>
+  </body>
+</html>
