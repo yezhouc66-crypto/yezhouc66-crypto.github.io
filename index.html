@@ -4,13 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <meta name="description" content="早风爽的作品集：学机器人的，喜欢把想法做成能跑起来的东西。">
+    <meta name="application-name" content="早风爽的作品集">
+    <meta name="description" content="早风爽的作品集：深圳技术大学机器人工程大二，会 AI 工具与编程、机器人控制，喜欢把想法做成能跑起来的东西。">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:site_name" content="早风爽的作品集">
+    <meta property="og:title" content="早风爽 · 作品集">
+    <meta property="og:description" content="深圳技术大学机器人工程大二，会 AI 工具与编程、机器人控制。看看我做的网页小游戏与交互实验。">
     <title>早风爽 · 作品集</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <script src="./theme.js"></script>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
     <div class="page">
-      <main>
+      <header class="site-header">
+        <nav aria-label="页面导航">
+          <a href="#about">关于我 / 技能</a>
+          <a href="#projects-title">作品集</a>
+        </nav>
+        <button class="theme-toggle" id="theme-toggle" type="button" hidden>主题：跟随系统</button>
+      </header>
+      <main id="main-content" tabindex="-1">
         <section class="intro enter" aria-labelledby="name">
           <div class="identity">
             <h1 id="name">早风爽</h1>
@@ -22,10 +38,54 @@
           </div>
         </section>
 
+        <section class="about enter" id="about" aria-labelledby="about-title">
+          <h2 class="section-title" id="about-title">关于我 / 技能</h2>
+          <div class="about-content">
+            <p>深圳技术大学 · 机器人工程 · 大二</p>
+            <ul class="skills" aria-label="技能">
+              <li>AI 工具</li>
+              <li>编程</li>
+              <li>机器人控制</li>
+            </ul>
+          </div>
+        </section>
+
         <section class="projects enter" aria-labelledby="projects-title">
           <h2 class="section-title" id="projects-title">作品集</h2>
-          <div class="project-grid"></div>
-          <noscript><p class="project-description">请启用 JavaScript 以查看作品集，也可以直接<a class="text-link" href="./pendulum/">体验倒立摆小游戏</a>。</p></noscript>
+          <div class="project-filters" role="group" aria-label="按标签筛选作品" hidden></div>
+          <p class="project-status" id="project-status" role="status" aria-live="polite" aria-atomic="true"></p>
+          <!-- 静态卡片保证 file://、禁用 JS 或模块加载失败时作品仍完整可见。
+               main.js 加载成功后使用 projects.js 的数据增强渲染与筛选。 -->
+          <div class="project-grid" id="project-grid">
+            <a class="project-card" href="./pendulum/" aria-labelledby="project-title-0" aria-describedby="project-description-0">
+              <div class="thumbnail">
+                <svg class="pendulum-drawing" viewBox="0 0 480 240" fill="none" aria-hidden="true" focusable="false">
+                  <g class="diagram-guides" stroke="currentColor" stroke-width="1">
+                    <path d="M62 189H418"/>
+                  </g>
+                  <g class="diagram-cart" stroke="currentColor" stroke-width="2">
+                    <rect x="197" y="147" width="86" height="26" rx="5" fill="var(--thumbnail)"/>
+                    <path d="M240 145 267 61" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="213" cy="180" r="7" fill="var(--thumbnail)"/>
+                    <circle cx="267" cy="180" r="7" fill="var(--thumbnail)"/>
+                    <path d="M209 160h12m7 0h9" stroke-width="1.5" stroke-linecap="round"/>
+                  </g>
+                  <circle class="diagram-weight" cx="267" cy="61" r="10"/>
+                  <circle class="diagram-pivot" cx="240" cy="147" r="4"/>
+                </svg>
+              </div>
+              <div class="project-title-row">
+                <h3 id="project-title-0">倒立摆小游戏</h3>
+              </div>
+              <p class="project-description" id="project-description-0">控制小车，让摇摇欲坠的摆杆保持直立。</p>
+              <ul class="project-tags" aria-label="作品标签">
+                <li>网页小游戏</li>
+                <li>机器人</li>
+                <li>交互实验</li>
+              </ul>
+              <span class="project-action">查看作品<span class="project-arrow" aria-hidden="true">→</span></span>
+            </a>
+          </div>
         </section>
       </main>
 

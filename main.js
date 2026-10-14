@@ -40,16 +40,57 @@ function renderProject(project, index) {
   const linkAttributes = external ? ' target="_blank" rel="noopener noreferrer"' : "";
   const tags = project.tags.map((tag) => `<li>${escapeHTML(tag)}</li>`).join("");
 
-  return `<a class="project-card" href="${escapeHTML(project.link)}"${linkAttributes} aria-labelledby="project-title-${index}" aria-describedby="project-description-${index}">
+  return `<a class="project-card" href="${escapeHTML(project.link)}"${linkAttributes} aria-labelledby="project-title-${index}" aria-describedby="project-description-${index}${external ? ` project-external-${index}` : ""}">
     <div class="thumbnail">${renderThumbnail(project)}</div>
     <div class="project-title-row">
       <h3 id="project-title-${index}">${escapeHTML(project.title)}</h3>
     </div>
     <p class="project-description" id="project-description-${index}">${escapeHTML(project.description)}</p>
     ${tags ? `<ul class="project-tags" aria-label="作品标签">${tags}</ul>` : ""}
-    <span class="project-action">查看作品<span class="project-arrow" aria-hidden="true">${external ? "↗" : "→"}</span>${external ? '<span class="visually-hidden">（在新标签页打开）</span>' : ""}</span>
+    <span class="project-action">查看作品<span class="project-arrow" aria-hidden="true">${external ? "↗" : "→"}</span>${external ? `<span class="visually-hidden" id="project-external-${index}">（在新标签页打开）</span>` : ""}</span>
   </a>`;
 }
 
-// 页面里的卡片全部来自 projects.js，数组顺序就是展示顺序。
-document.querySelector(".project-grid").innerHTML = projects.map(renderProject).join("");
+// 标签与卡片都来自 projects.js；筛选不会改变数组或原始展示顺序。
+const grid = document.querySelector(".project-grid");
+const filters = document.querySelector(".project-filters");
+const status = document.getElementById("project-status");
+const tags = [...new Set(projects.flatMap((project) => project.tags))];
+let selectedTag = null;
+
+function updateProjects() {
+  const visible = projects
+    .map((project, index) => ({ project, index }))
+    .filter(({ project }) => selectedTag === null || project.tags.includes(selectedTag));
+
+  grid.innerHTML = visible.length
+    ? visible.map(({ project, index }) => renderProject(project, index)).join("")
+    : '<p class="project-description">暂无作品，正在慢慢积累中。</p>';
+  status.textContent = selectedTag === null
+    ? `全部作品 · ${visible.length} 个`
+    : `${selectedTag} · ${visible.length} 个作品`;
+
+  for (const button of filters.querySelectorAll("button")) {
+    const tagIndex = Number(button.dataset.tagIndex);
+    button.setAttribute("aria-pressed", String(
+      tagIndex === -1 ? selectedTag === null : selectedTag === tags[tagIndex],
+    ));
+  }
+}
+
+for (const [index, label] of ["全部", ...tags].entries()) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "filter-button";
+  button.textContent = label;
+  button.dataset.tagIndex = String(index - 1);
+  button.setAttribute("aria-controls", "project-grid");
+  button.addEventListener("click", () => {
+    selectedTag = index === 0 ? null : tags[index - 1];
+    updateProjects();
+  });
+  filters.append(button);
+}
+
+filters.hidden = tags.length === 0;
+updateProjects();
