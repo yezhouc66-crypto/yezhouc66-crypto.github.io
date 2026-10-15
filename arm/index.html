@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="拖动目标，操纵机械臂抓球、甩球、投篮。一个关于逆运动学和手感的原创 Canvas 小游戏。">
+  <title>机械臂投篮 · 早风爽</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <script src="../theme.js"></script>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="./arm.css">
+  <script defer src="./physics.js"></script>
+  <script defer src="./game.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#game">跳到游戏</a>
+  <div class="page arm-page">
+    <header class="site-header">
+      <nav aria-label="页面导航"><a href="../#projects-title">← 返回作品集</a><a href="#instructions">玩法说明</a></nav>
+      <button class="theme-toggle" id="theme-toggle" type="button" hidden>主题：跟随系统</button>
+    </header>
+    <main>
+      <section class="game-intro" aria-labelledby="game-title">
+        <div><p class="eyebrow">交互实验 / 002 · INVERSE KINEMATICS</p><h1 id="game-title">机械臂投篮<span aria-hidden="true">。</span></h1></div>
+        <p class="intro-copy">一点机器人知识，一点投篮手感。<br>把目标交给算法，把弧线交给你。</p>
+      </section>
+
+      <section class="game-shell" aria-label="机械臂投篮游戏">
+        <div class="scorebar">
+          <div class="level-heading"><span class="live-dot" aria-hidden="true"></span><span id="level-label">01 / 03　初次出手</span></div>
+          <dl class="scores"><div><dt>得分</dt><dd id="score">000</dd></div><div><dt>命中 / 出手</dt><dd id="shots">0 / 0</dd></div><div><dt>最佳</dt><dd id="best">000</dd></div></dl>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="game" width="1000" height="600" tabindex="0" aria-label="机械臂投篮画布。拖动目标点抓球并甩出；也可用方向键移动目标，空格抓球或投出。" aria-describedby="instructions game-status">你的浏览器需要支持 Canvas 才能运行游戏。</canvas>
+          <span class="canvas-badge" aria-hidden="true">IK PLAYGROUND <span>重力 680 px/s²</span></span>
+          <div class="result" id="result" hidden>
+            <p class="eyebrow" id="result-kicker">NICE SHOT</p><h2 id="result-title">漂亮的弧线！</h2><p id="result-copy">投篮命中，准备迎接下一个挑战。</p><button class="primary-link" id="next-level" type="button">下一关 →</button>
+          </div>
+        </div>
+        <div class="game-message"><span class="message-mark" aria-hidden="true">↗</span><p id="game-status" role="status" aria-live="polite">先把夹爪移向橙色小球；也可以点击「抓球」。</p><span id="reach-status">CCD · 实时跟随</span></div>
+        <div class="toolbar">
+          <div class="control-group" role="group" aria-label="机械臂连杆数"><button type="button" class="option active" data-links="2" aria-pressed="true">二连杆</button><button type="button" class="option" data-links="3" aria-pressed="false">三连杆</button></div>
+          <div class="switches"><label><input type="checkbox" id="show-angles" checked>关节角</label><label><input type="checkbox" id="show-workspace">工作空间</label><label><input type="checkbox" id="show-path" checked>轨迹预览</label></div>
+          <div class="action-group"><button class="option" id="grab" type="button">抓球 <span aria-hidden="true">G</span></button><button class="throw-button" id="throw" type="button" disabled>投出 ↗</button></div>
+        </div>
+        <div class="levelbar"><p id="level-note">开放场地 · 命中一球即可过关 · 每球 100 分</p><div><button id="retry" type="button">重新放球 <span aria-hidden="true">R</span></button><button id="restart" type="button">重新开始</button></div></div>
+      </section>
+
+      <section class="instructions" id="instructions" aria-labelledby="instructions-title">
+        <div class="instructions-title"><p class="eyebrow">HOW TO PLAY</p><h2 id="instructions-title">让机械臂，投出你的手感。</h2><p>鼠标、手指或键盘，都能出手。</p></div>
+        <ol class="steps"><li><span>01</span><div><h3>靠近，抓住</h3><p>在场地内拖动目标十字，夹爪靠近小球时会自动抓取。「抓球」按钮可帮你完成这一步。</p></div></li><li><span>02</span><div><h3>向右上方，甩出去</h3><p>持球后先往左下拉，再快速向右上拖动并松手。球会继承夹爪的速度；停住再松手，球就会落下。</p></div></li><li><span>03</span><div><h3>找准那条弧线</h3><p>虚线预览当前出手轨迹。从上方穿过篮圈才算命中。三关依次加入障碍和关节限位，每关命中一球。</p></div></li></ol>
+      </section>
+      <details class="lab-notes"><summary>控制与原理 <span>CCD / 物理 / 关节限位</span></summary><div><p>目标是空心十字，夹爪是实心圆。CCD 从末端向基座逐个旋转关节，让末端靠近目标；机械臂总长保持 300 px，二、三连杆有不同的折叠方式。工作空间显示按当前角度限位采样得到的可达末端点，不包含避障规划。</p><p>小球采用 1/120 秒固定步长、重力、空气阻力和碰撞反弹。障碍会挡住小球；机械臂只做运动学展示，可穿过障碍。每次甩出计一次出手；重新放球会保留分数与出手数，重新开始清空本局，最佳分数保存在本机。</p><p>键盘：聚焦画布后，用 <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> 连续移动目标，<kbd>Shift</kbd> 加速；<kbd>G</kbd> 自动抓球，<kbd>空格</kbd> 投出或抓球，<kbd>R</kbd> 重新放球。也可按 Tab 访问所有按钮。切走页面时自动暂停，回到页面继续。</p></div></details>
+      <noscript><p class="noscript-note">请启用 JavaScript 运行游戏。此游戏全部在本机运行，无需网络或账号。</p></noscript>
+    </main>
+    <footer><a class="text-link" href="../#projects-title">← 还有其他小想法</a><span>原创小游戏 · HTML / Canvas / JavaScript</span></footer>
+  </div>
+</body>
+</html>

@@ -20,7 +20,7 @@ def main():
     base = urlunsplit((url.scheme, url.netloc, quote(url.path.rstrip("/") + "/", safe="/%"), "", ""))
     root = Path(__file__).resolve().parent.parent
     # 仅收录实际页面；模板与 404 页保留 noindex，不加入地图。
-    pages = ("", "projects/pendulum.html", "pendulum/")
+    pages = ("", "projects/pendulum.html", "pendulum/", "arm/")
     namespace = "http://www.sitemaps.org/schemas/sitemap/0.9"
     ET.register_namespace("", namespace)
     urlset = ET.Element(f"{{{namespace}}}urlset")

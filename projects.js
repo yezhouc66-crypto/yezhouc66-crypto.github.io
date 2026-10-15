@@ -8,4 +8,11 @@ export const projects = [
     image: null,
     tags: ["网页小游戏", "机器人", "交互实验"],
   },
+  {
+    title: "机械臂投篮",
+    description: "拖动目标，抓球甩出，让逆运动学投出漂亮弧线。",
+    link: "./arm/",
+    image: "./arm/preview.svg",
+    tags: ["网页小游戏", "机器人", "逆运动学"],
+  },
 ];

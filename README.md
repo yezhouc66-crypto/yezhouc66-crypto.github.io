@@ -12,6 +12,24 @@
 - 提供页面标题、description、Open Graph 标题／描述／类型／站点名／语言，以及倒立摆造型的 SVG favicon。
 - `404.html` 保持相同配色与排版，带 GitHub 入口和 `noindex`。脚本会从错误路径逐级向上查找带主页标识的 `index.html`，定位首页后加载共享样式和主题按钮，因此不需要预先写死仓库名。不要删除主页的 `application-name` 元标签。脚本关闭或定位请求失败时仍有独立基础样式，提供站点根目录、上一页和 GitHub 的恢复提示；仓库子路径的精确首页恢复需要 JavaScript。
 
+## 机械臂投篮
+
+打开 `./arm/`（或直接打开 `arm/index.html`）即可游玩。原创纯 HTML / Canvas / JavaScript 小游戏，无外部依赖、网络请求或构建步骤，配色、字体和浅／深色主题复用主站。
+
+- **抓球与甩球**：拖动场内的目标十字，夹爪靠近球时自动抓取；「抓球」按钮也可自动移动到球。持球后往左下拉，再快速向右上拖动并松手，球继承夹爪实际运动速度，最高 1100 px/s；停住再松手会掉球。虚线预览使用同一套物理模拟。
+- **逆运动学**：二、三连杆自由切换，总长均为 300 px；CCD 实时迭代，末端跟随速度与关节转速有限制。可切换关节角、可达工作空间采样点和轨迹预览。空心十字表示目标，实心末端表示夹爪；不可达时显示误差，不会拉长连杆。
+- **物理与判分**：1/120 秒固定步长，重力、空气阻力、地面、挡板、篮板与篮圈反弹；球从上往下穿过篮圈内侧才得分，同一球只计一次。机械臂本身只展示运动学，可穿过障碍，不做避障规划。
+- **三关挑战**：初次出手（100 分）→ 更远的篮筐与挡板（150 分）→ 更高的篮筐、挡板与关节限位（200 分）。第三关肩关节 −165°～−10°、肘关节 ±135°，三连杆另有腕关节 ±100°。每关进一球继续；通关满分 450。
+- **操作与保存**：鼠标、触控共用 Pointer Events 和指针捕获；取消触控不会误投，第二根手指不会抢走目标。聚焦画布后用方向键移动、Shift 加速、G 抓球、空格抓球／投球、R 重新放球。所有按钮支持 Tab。切到后台暂停。未命中自动放回球；重新放球保留本局成绩，重新开始清空本局。最佳分数存在 `localStorage` 的 `arm-basket-best`，存储不可用时仍能游玩。
+
+文件：`arm/index.html`（页面与说明）、`arm/arm.css`（布局）、`arm/physics.js`（数学／物理）、`arm/game.js`（交互／绘制／关卡）、`arm/preview.svg`（原创首页预览）、`arm/test.cjs`（可选离线自测，不参与运行）。
+
+```sh
+node arm/test.cjs
+```
+
+自测覆盖 CCD 收敛、连杆长度、不可达／共线目标、限位、出手限速、碰撞和单次判分，以及实际游戏代码中的触控、键盘、重置、切换连杆、两个连杆模式连续三关命中和最佳分数保存。可加 `--find-shots` 搜索六种关卡组合的可复现出手手势。测试使用最小 DOM/Canvas 模拟，不替代真实浏览器视觉与设备触控检查。
+
 ## 无障碍与移动端
 
 - 页面声明简体中文，使用语义化标题、导航、主内容与页脚。
@@ -38,7 +56,7 @@
 ```
 
 - `title`、`description`：作品标题和简短介绍，建议用简体中文。
-- `link`：作品地址。第一项倒立摆小游戏固定为 `./pendulum/`；后续作品在各自仓库开发、部署，这里只添加外链，可指向作品网站或仓库页面。不同站点的链接会在新标签页打开。
+- `link`：作品地址。第一项倒立摆小游戏固定为 `./pendulum/`；机械臂投篮为 `./arm/`。新作品可以使用仓库内的相对路径，也可指向独立作品网站或仓库页面。不同站点的链接会在新标签页打开。
 - `detail`：可选的站内详情页地址，如 `./projects/pendulum.html`。只为真实作品填写；省略时不显示详情链接。
 - `image`：可填图片地址（HTTPS 地址或相对于主页的路径，如 `./images/demo.webp`）；没有图片时填 `null` 或空字符串，页面自动显示占位预览，倒立摆保留原有插图。图片以 2:1 区域裁切显示，手机上比例略有调整，主体建议放在中央。动态图片保留 `loading="lazy"`、`decoding="async"`，缩略图容器预留比例以减少布局跳动。手动添加静态图片时也应加这两个属性，并填写真实图片的 `width`、`height`；预览只是标题的装饰补充时用 `alt=""`，包含独立信息时写明图片含义。现有倒立摆预览是内联 SVG，无需额外图片请求或懒加载。
 - `tags`：标签数组，没有标签时填 `[]`。新增标签会自动成为筛选按钮；保持同类标签的文字一致。名为「全部」的项目标签仍是独立筛选项，不影响默认全部作品入口。
@@ -70,6 +88,7 @@
 - `sitemap.xml`、`robots.txt`：站点地图与爬虫入口；正式 URL 未确认时地图暂为空，见下方生成说明。
 - `scripts/generate-sitemap.py`：可选的一次性站点索引生成工具；访问站点不需要 Python 或构建。
 - `pendulum/`：已有小游戏目录，保持原样。
+- `arm/`：原创机械臂投篮小游戏；首页数据和静态卡片均提供入口。
 
 ## 本地预览
 
@@ -87,7 +106,7 @@ Python 的简单服务器不会自动使用自定义错误页；可直接访问 
 
 ## GitHub Pages
 
-在仓库的 Pages 设置中选择存放页面文件的分支及根目录 `/ (root)`。将 `index.html`、`style.css`、`projects.js`、`main.js`、`theme.js`、`favicon.svg`、`404.html`、`projects/`、`sitemap.xml`、`robots.txt` 与原有 `pendulum/` 放在仓库根目录，保持相对位置即可，不需要构建工具。首页本地资源均使用相对路径，支持 GitHub Pages 的仓库子路径。
+在仓库的 Pages 设置中选择存放页面文件的分支及根目录 `/ (root)`。将 `index.html`、`style.css`、`projects.js`、`main.js`、`theme.js`、`favicon.svg`、`404.html`、`projects/`、`sitemap.xml`、`robots.txt`、`pendulum/` 与 `arm/` 放在仓库根目录，保持相对位置即可，不需要构建工具。首页本地资源均使用相对路径，支持 GitHub Pages 的仓库子路径。
 
 确定正式部署地址后，可在 `index.html` 的 head 中添加 canonical 与 `og:url`（两者使用同一个完整 HTTPS 首页地址，仓库子路径和结尾 `/` 都要保留）。当前没有已确认的部署地址，因此未写入猜测的链接。
 
@@ -101,17 +120,17 @@ Python 的简单服务器不会自动使用自定义错误页；可直接访问 
 python3 scripts/generate-sitemap.py 'https://实际域名/实际仓库子路径/'
 ```
 
-请替换为真实部署地址；用户主页仓库部署在域名根目录时不带仓库子路径。该命令会生成首页、倒立摆详情页和原小游戏三个真实页面的绝对 URL，并更新 `robots.txt` 的 `Sitemap` 行。保留末尾 `/` 与正确的仓库子路径，不使用虚构域名，也不伪造 `lastmod`。在 GitHub Pages 的项目站点中，仓库内的 `robots.txt` 只位于该项目子路径；爬虫对 robots 的发现以域名根目录为准，可另行在搜索平台提交实际 `sitemap.xml` 地址。
+请替换为真实部署地址；用户主页仓库部署在域名根目录时不带仓库子路径。该命令会生成首页、倒立摆详情页、倒立摆小游戏和机械臂投篮四个真实页面的绝对 URL，并更新 `robots.txt` 的 `Sitemap` 行。保留末尾 `/` 与正确的仓库子路径，不使用虚构域名，也不伪造 `lastmod`。在 GitHub Pages 的项目站点中，仓库内的 `robots.txt` 只位于该项目子路径；爬虫对 robots 的发现以域名根目录为准，可另行在搜索平台提交实际 `sitemap.xml` 地址。
 
-## 本轮检查与截图
+## 机械臂投篮检查与截图
 
-本轮调整了作品区标题层次、分区间距、占位卡、移动端描述字号与键盘焦点。占位文字沿用正文辅助色，浅／深色对比度通过离线计算检查。图片懒加载和异步解码保持生效，SVG 插图无需图片加载脚本；内容没有使用透明度或滚动观察器延迟显示。
+本轮 `node arm/test.cjs` 的 15 项离线检查通过；覆盖真实交互代码在二、三连杆模式连续通关。首页动态渲染／标签筛选、静态作品入口、本地资源与脚本语法另做离线检查；原有 `pendulum/` 通过修改前后的 SHA-256 校验确认未变。
 
-建议通过本地静态服务器预览后执行（高度加大以检查完整页面）：
+可通过本地服务器截图，也可以直接使用游戏的 `file://` 地址（将绝对路径替换为实际项目位置）：
 
 ```sh
-chromium --headless --no-sandbox --virtual-time-budget=3000 --force-device-scale-factor=1 --window-size=1280,1500 --screenshot=/workspace/hp10-desktop.png http://127.0.0.1:8000/
-chromium --headless --no-sandbox --virtual-time-budget=3000 --force-device-scale-factor=1 --window-size=390,1900 --screenshot=/workspace/hp10-mobile.png http://127.0.0.1:8000/
+chromium --headless --no-sandbox --virtual-time-budget=3000 --force-device-scale-factor=1 --window-size=1440,1180 --screenshot=/workspace/arm.png file:///workspace/homepage/arm/index.html
+chromium --headless --no-sandbox --virtual-time-budget=3000 --force-device-scale-factor=1 --window-size=390,1400 --screenshot=/tmp/arm-mobile.png file:///workspace/homepage/arm/index.html
 ```
 
-当前执行环境没有 `chromium` 命令；尝试现有 Chrome 内核时，启动因沙箱的 socket 权限限制退出，本地 HTTP 服务器也被同一限制阻止。本轮未生成或替用旧截图，不能声称已目视确认；离线内容、链接、渲染与对比度检查结果见交付说明。`pendulum/` 以修改前后 SHA-256 校验确认不变。此环境无可用 Git 元数据，未执行提交、推送或上线操作。
+当前执行环境未提供 `chromium` 命令，因此用临时命令别名指向已有 Chrome 内核尝试同样的截图参数。Chrome 因 socket 权限限制在启动时退出（`setsockopt: Operation not permitted`）；本地 HTTP 服务也无法创建 socket。另外 `/workspace/arm.png` 位于当前可写目录之外。未生成截图，尚未完成真实浏览器目视确认。未推送 Git、修改服务器配置或对外发送消息。
